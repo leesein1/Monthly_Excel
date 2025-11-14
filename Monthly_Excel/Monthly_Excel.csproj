@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<!-- 수동 버전 관리 -->
+		<Version>1.2.3</Version>
+		<!-- 제품 버전 (표시용/패키징용) -->
+		<FileVersion>1.2.3.0</FileVersion>
+		<!-- 파일 속성의 '파일 버전' : 여기 수정 시 버전 바뀜 -->
+		<AssemblyVersion>1.2.0.1</AssemblyVersion>
+		<!-- 어셈블리 바인딩용: 자주 안 바꾸는 걸 권장 -->
+		<InformationalVersion>1.2.3+local</InformationalVersion>
+		<!-- 선택: Git 해시/태그 등 자유 문자열 -->
+	</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Selenium.Support" Version="4.35.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="4.35.0" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="139.0.7258.15400" />
+    <PackageReference Include="SeleniumExtras.WaitHelpers" Version="1.0.2" />
+  </ItemGroup>
+
+</Project>
