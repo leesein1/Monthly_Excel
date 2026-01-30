@@ -143,7 +143,7 @@ namespace Monthly_Excel
                 // 경로 + 파일명
                 string path = sfd.FileName;
 
-                // 저장 (네가 만든 정적 메서드)
+                // 저장 메서드)
                 CrawlingProcessor.SaveCrawlingTemplate(path);
 
                 MessageBox.Show("템플릿을 저장했습니다.", "완료",
