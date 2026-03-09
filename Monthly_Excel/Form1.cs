@@ -1,35 +1,98 @@
-﻿using System;
-using System.Reflection; // ← 버전 정보를 위해 추가
+using System;
+using System.Drawing;
 using System.Windows.Forms;
+using Monthly_Excel.Handlers;
 
 namespace Monthly_Excel
 {
     public partial class Form1 : Form
     {
-        private KeywordEventHandler keywordHandler;
-        private CrawlingEventHandler crawlingHandler;
+        private readonly Size _defaultFormSize = new Size(532, 328);
+        private readonly Size _defaultMinSize = new Size(516, 289);
+
+        private readonly Size _blogFormSize = new Size(1200, 760);
+        private readonly Size _blogMinSize = new Size(1100, 720);
+
+        private BlogCleanerHandler? _blogCleanerHandler;
 
         public Form1()
         {
             InitializeComponent();
+            BindEvents();
+        }
 
-            // 1 폼 제목에 버전 자동 표시
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            this.Text = $"Monthly Excel Manager by.silee  v{version}";
+        private void BindEvents()
+        {
+            Load += Form1_Load;
+            FormClosing += Form1_FormClosing;
+            tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
-            // 2 핸들러 인스턴스 생성
-            keywordHandler = new KeywordEventHandler(inputKeywordBox, leftListBox, rightListBox);
-            crawlingHandler = new CrawlingEventHandler(labelStatus, progressBar);
+            buttonBlogOpen.Click += ButtonBlogOpen_Click;
+            buttonBlogClean.Click += ButtonBlogClean_Click;
+            buttonBlogRefresh.Click += ButtonBlogRefresh_Click;
+        }
 
-            // 3 키워드 관련 버튼 이벤트
-            convertButton.Click += keywordHandler.OnConvertClicked;
-            copyLeftButton.Click += keywordHandler.OnCopyLeftClicked;
-            copyRightButton.Click += keywordHandler.OnCopyRightClicked;
+        private async void Form1_Load(object? sender, EventArgs e)
+        {
+            ResizeForCurrentTab();
 
-            // 4 크롤링 관련 버튼 이벤트
-            buttonUpload.Click += crawlingHandler.OnUploadClicked;
-            buttonDownload.Click += crawlingHandler.OnDownloadClicked;
-            buttonTemplateDownload.Click += crawlingHandler.OnTemplateDownloadClicked;
+            _blogCleanerHandler = new BlogCleanerHandler(
+                blogUrlTextBox,
+                labelBlogStatus,
+                blogWebView
+            );
+
+            await _blogCleanerHandler.InitializeAsync();
+        }
+
+        private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            _blogCleanerHandler?.Dispose();
+        }
+
+        private void TabControl_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ResizeForCurrentTab();
+        }
+
+        private void ResizeForCurrentTab()
+        {
+            if (tabControl.SelectedTab == tabPageBlogCleaner)
+            {
+                MinimumSize = _blogMinSize;
+                Size = _blogFormSize;
+            }
+            else
+            {
+                MinimumSize = _defaultMinSize;
+                Size = _defaultFormSize;
+            }
+
+            CenterToScreen();
+        }
+
+        private async void ButtonBlogOpen_Click(object? sender, EventArgs e)
+        {
+            if (_blogCleanerHandler == null)
+                return;
+
+            await _blogCleanerHandler.OpenAsync();
+        }
+
+        private async void ButtonBlogClean_Click(object? sender, EventArgs e)
+        {
+            if (_blogCleanerHandler == null)
+                return;
+
+            await _blogCleanerHandler.CleanAsync();
+        }
+
+        private async void ButtonBlogRefresh_Click(object? sender, EventArgs e)
+        {
+            if (_blogCleanerHandler == null)
+                return;
+
+            await _blogCleanerHandler.RefreshAsync();
         }
     }
 }
