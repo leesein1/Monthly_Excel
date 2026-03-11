@@ -10,11 +10,12 @@
         <FileVersion>1.2.3.0</FileVersion>
         <AssemblyVersion>1.2.0.1</AssemblyVersion>
         <InformationalVersion>1.2.3+local</InformationalVersion>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="ClosedXML" Version="0.105.0" />
-        <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3065.39" />
+        <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2829.65" />
         <PackageReference Include="Selenium.Support" Version="4.35.0" />
         <PackageReference Include="Selenium.WebDriver" Version="4.35.0" />
         <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="139.0.7258.15400" />

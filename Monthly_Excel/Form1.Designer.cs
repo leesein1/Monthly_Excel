@@ -1,4 +1,4 @@
-namespace Monthly_Excel
+﻿namespace Monthly_Excel
 {
     partial class Form1
     {
@@ -35,6 +35,7 @@ namespace Monthly_Excel
         private System.Windows.Forms.Button buttonBlogOpen;
         private System.Windows.Forms.Button buttonBlogClean;
         private System.Windows.Forms.Button buttonBlogRefresh;
+        private System.Windows.Forms.Button buttonBlogDownloadImages;
         private System.Windows.Forms.Label labelBlogStatus;
         private Microsoft.Web.WebView2.WinForms.WebView2 blogWebView;
 
@@ -78,6 +79,7 @@ namespace Monthly_Excel
             buttonBlogOpen = new Button();
             buttonBlogClean = new Button();
             buttonBlogRefresh = new Button();
+            buttonBlogDownloadImages = new Button();
             labelBlogStatus = new Label();
             blogWebView = new Microsoft.Web.WebView2.WinForms.WebView2();
             tabControl.SuspendLayout();
@@ -374,6 +376,7 @@ namespace Monthly_Excel
             blogTopPanel.Controls.Add(buttonBlogOpen);
             blogTopPanel.Controls.Add(buttonBlogClean);
             blogTopPanel.Controls.Add(buttonBlogRefresh);
+            blogTopPanel.Controls.Add(buttonBlogDownloadImages);
             blogTopPanel.Dock = DockStyle.Fill;
             blogTopPanel.Location = new Point(3, 3);
             blogTopPanel.Name = "blogTopPanel";
@@ -381,43 +384,53 @@ namespace Monthly_Excel
             blogTopPanel.TabIndex = 0;
             // 
             // blogUrlTextBox
-            // 
+            //
             blogUrlTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            blogUrlTextBox.Location = new Point(0, 9);
+            blogUrlTextBox.Location = new Point(3, 9);
             blogUrlTextBox.Name = "blogUrlTextBox";
             blogUrlTextBox.PlaceholderText = "네이버 블로그 URL 입력";
-            blogUrlTextBox.Size = new Size(170, 23);
+            blogUrlTextBox.Size = new Size(168, 23);
             blogUrlTextBox.TabIndex = 0;
             // 
             // buttonBlogOpen
-            // 
+            //
             buttonBlogOpen.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             buttonBlogOpen.Location = new Point(176, 8);
             buttonBlogOpen.Name = "buttonBlogOpen";
-            buttonBlogOpen.Size = new Size(96, 25);
+            buttonBlogOpen.Size = new Size(48, 25);
             buttonBlogOpen.TabIndex = 1;
             buttonBlogOpen.Text = "열기";
             buttonBlogOpen.UseVisualStyleBackColor = true;
             // 
             // buttonBlogClean
-            // 
+            //
             buttonBlogClean.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonBlogClean.Location = new Point(278, 8);
+            buttonBlogClean.Location = new Point(229, 8);
             buttonBlogClean.Name = "buttonBlogClean";
-            buttonBlogClean.Size = new Size(96, 25);
+            buttonBlogClean.Size = new Size(48, 25);
             buttonBlogClean.TabIndex = 2;
             buttonBlogClean.Text = "정리";
             buttonBlogClean.UseVisualStyleBackColor = true;
             // 
             // buttonBlogRefresh
-            // 
+            //
             buttonBlogRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonBlogRefresh.Location = new Point(380, 8);
+            buttonBlogRefresh.Location = new Point(282, 8);
             buttonBlogRefresh.Name = "buttonBlogRefresh";
-            buttonBlogRefresh.Size = new Size(96, 25);
+            buttonBlogRefresh.Size = new Size(90, 25);
             buttonBlogRefresh.TabIndex = 3;
             buttonBlogRefresh.Text = "새로고침";
             buttonBlogRefresh.UseVisualStyleBackColor = true;
+            // 
+            // buttonBlogDownloadImages
+            //
+            buttonBlogDownloadImages.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonBlogDownloadImages.Location = new Point(380, 8);
+            buttonBlogDownloadImages.Name = "buttonBlogDownloadImages";
+            buttonBlogDownloadImages.Size = new Size(90, 25);
+            buttonBlogDownloadImages.TabIndex = 4;
+            buttonBlogDownloadImages.Text = "이미지 다운";
+            buttonBlogDownloadImages.UseVisualStyleBackColor = true;
             // 
             // labelBlogStatus
             // 

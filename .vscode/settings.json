@@ -1,0 +1,8 @@
+{
+  "files.encoding": "utf8bom",
+  "[csharp]": {
+    "files.encoding": "utf8bom"
+  },
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "ms-dotnettools.csharp"
+}

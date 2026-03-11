@@ -10,8 +10,8 @@ namespace Monthly_Excel
         private readonly Size _defaultFormSize = new Size(532, 328);
         private readonly Size _defaultMinSize = new Size(516, 289);
 
-        private readonly Size _blogFormSize = new Size(1200, 760);
-        private readonly Size _blogMinSize = new Size(1100, 720);
+        private readonly Size _blogFormSize = new Size(1400, 900);
+        private readonly Size _blogMinSize = new Size(1200, 800);
 
         private BlogCleanerHandler? _blogCleanerHandler;
 
@@ -30,6 +30,7 @@ namespace Monthly_Excel
             buttonBlogOpen.Click += ButtonBlogOpen_Click;
             buttonBlogClean.Click += ButtonBlogClean_Click;
             buttonBlogRefresh.Click += ButtonBlogRefresh_Click;
+            buttonBlogDownloadImages.Click += ButtonBlogDownloadImages_Click;
         }
 
         private async void Form1_Load(object? sender, EventArgs e)
@@ -93,6 +94,14 @@ namespace Monthly_Excel
                 return;
 
             await _blogCleanerHandler.RefreshAsync();
+        }
+
+        private async void ButtonBlogDownloadImages_Click(object? sender, EventArgs e)
+        {
+            if (_blogCleanerHandler == null)
+                return;
+
+            await _blogCleanerHandler.SaveImagesAsync();
         }
     }
 }

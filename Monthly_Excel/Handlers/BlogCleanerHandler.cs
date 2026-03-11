@@ -58,6 +58,28 @@ namespace Monthly_Excel.Handlers
             await _processor.RefreshAsync();
         }
 
+        public async Task SaveImagesAsync()
+        {
+            using (var dialog = new FolderBrowserDialog())
+            {
+                dialog.Description = "이미지를 저장할 폴더를 선택하세요";
+                dialog.ShowNewFolderButton = true;
+
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    SetStatus("취소됨");
+                    return;
+                }
+
+                string selectedPath = Path.Combine(
+                    dialog.SelectedPath,
+                    "Blog_Images_" + DateTime.Now.ToString("yyyyMMdd_HHmmss")
+                );
+
+                await _processor.SaveImagesAsync(selectedPath);
+            }
+        }
+
         private void SetStatus(string message)
         {
             if (_statusLabel.InvokeRequired)

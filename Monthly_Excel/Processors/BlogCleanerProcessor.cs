@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
@@ -113,6 +117,140 @@ namespace Monthly_Excel.Processors
             {
                 _setStatus($"새로고침 실패: {ex.Message}");
             }
+        }
+
+        public async Task SaveImagesAsync(string downloadPath)
+        {
+            if (!_initialized || _webView.CoreWebView2 == null)
+            {
+                _setStatus("브라우저가 아직 준비되지 않았습니다.");
+                return;
+            }
+
+            try
+            {
+                _setStatus("이미지 수집 중...");
+
+                string collectScript = BlogCleanerScriptProvider.GetCollectImageInfosScript();
+                string result = "";
+
+                for (int attempt = 1; attempt <= 3; attempt++)
+                {
+                    result = await _webView.CoreWebView2.ExecuteScriptAsync(collectScript);
+
+                    if (!string.IsNullOrEmpty(result) && result != "[]" && result != "\"[]\"")
+                        break;
+
+                    if (attempt < 3)
+                    {
+                        _setStatus($"이미지 확인 중... ({attempt}/3)");
+                        await Task.Delay(800);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    _setStatus("이미지 수집 실패");
+                    return;
+                }
+
+                // ExecuteScriptAsync는 JSON 문자열로 반환됨
+                // 예: "[]" 또는 "[{...}]" 형태
+                // 한번 더 deserialize해서 따옴표 제거
+                string jsonResult = result;
+                try
+                {
+                    jsonResult = JsonSerializer.Deserialize<string>(result) ?? result;
+                }
+                catch
+                {
+                    // 이미 JSON 형태일 수 있음
+                }
+
+                if (jsonResult == "[]" || jsonResult == "" || jsonResult == "\"[]\"")
+                {
+                    _setStatus("이미지를 찾을 수 없습니다. 본문 iframe 또는 실제 이미지 요소가 없는 페이지일 수 있습니다.");
+                    return;
+                }
+
+                var images = JsonSerializer.Deserialize<List<ImageInfo>>(jsonResult);
+
+                if (images == null || images.Count == 0)
+                {
+                    _setStatus("이미지를 찾을 수 없습니다. 다른 블로그를 시도해보세요.");
+                    return;
+                }
+
+                _setStatus($"이미지 {images.Count}개 찾음, 다운로드 시작...");
+
+                Directory.CreateDirectory(downloadPath);
+
+                int downloaded = 0;
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+
+                    foreach (var image in images)
+                    {
+                        try
+                        {
+                            if (string.IsNullOrEmpty(image.src))
+                                continue;
+
+                            string fileName = $"{image.idx:D4}_{SanitizeFileName(image.alt)}.jpg";
+                            string filePath = Path.Combine(downloadPath, fileName);
+
+                            _setStatus($"다운로드 중... ({downloaded + 1}/{images.Count})");
+
+                            using (var response = await client.GetAsync(image.src))
+                            {
+                                if (response.IsSuccessStatusCode)
+                                {
+                                    using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+                                    {
+                                        await response.Content.CopyToAsync(fs);
+                                        downloaded++;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // 개별 이미지 실패는 계속 진행
+                            continue;
+                        }
+                    }
+                }
+
+                _setStatus($"다운로드 완료! {downloaded}개 이미지가 {downloadPath}에 저장되었습니다.");
+            }
+            catch (Exception ex)
+            {
+                _setStatus($"이미지 다운로드 실패: {ex.Message}");
+            }
+        }
+
+        private string SanitizeFileName(string fileName)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            foreach (char c in invalidChars)
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+
+            if (fileName.Length > 50)
+                fileName = fileName.Substring(0, 50);
+
+            return fileName;
+        }
+
+        private class ImageInfo
+        {
+            public int idx { get; set; }
+            public string src { get; set; }
+            public string alt { get; set; }
+            public int width { get; set; }
+            public int height { get; set; }
         }
 
         public async Task EnableRightClickAsync()
