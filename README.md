@@ -105,7 +105,7 @@ WebView2를 이용해
 
 # Screenshots
 
-프로그램 주요 화면
+프로그램 주요 화면 ( 추가 예정 )
 
     docs/main.png
     docs/excel.png
