@@ -1,4 +1,4 @@
-﻿// KeywordProcessor.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,64 +8,69 @@ namespace Monthly_Excel.Processors
     {
         public static (List<string> left, List<string> right) ProcessKeywords(string rawInput)
         {
-            var leftList = new List<string>();
-            var rightList = new List<string>();
+            var leftKeywords = new List<string>();
+            var rightKeywords = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(rawInput))
+            {
+                return (leftKeywords, rightKeywords);
+            }
 
             var lines = rawInput
-                .Replace("\"", "")
+                .Replace("\"", string.Empty)
                 .Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .ToList();
+                .Select(line => line.Trim())
+                .Where(line => !string.IsNullOrWhiteSpace(line));
 
             foreach (var line in lines)
             {
-                if (line.Contains("모바일"))
+                if (line.Contains("모바일", StringComparison.Ordinal))
                 {
-                    int idx = line.IndexOf("모바일");
-                    if (idx >= 0)
-                    {
-                        string before = line.Substring(0, idx).Trim();
-                        string after = line.Substring(idx).Trim();
-                        if (!string.IsNullOrEmpty(before)) leftList.Add(before);
-                        if (!string.IsNullOrEmpty(after)) rightList.Add(after);
-                    }
+                    AddSplitPair(line, "모바일", leftKeywords, rightKeywords);
+                    continue;
                 }
-                else if (line.Contains("카페"))
-                {
-                    int cafeCount = line.Split(new[] { "카페" }, StringSplitOptions.None).Length - 1;
 
-                    if (cafeCount == 1)
-                    {
-                        int idx = line.IndexOf("카페");
-                        if (idx >= 0)
-                        {
-                            string before = line.Substring(0, idx).Trim();
-                            string after = line.Substring(idx).Trim();
-                            if (!string.IsNullOrEmpty(before)) leftList.Add(before);
-                            if (!string.IsNullOrEmpty(after)) rightList.Add(after);
-                        }
-                    }
-                    else if (cafeCount >= 2)
-                    {
-                        string[] segments = line.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var segment in segments)
-                        {
-                            string seg = segment.Trim();
-                            int idx = seg.IndexOf("카페");
-                            if (idx >= 0)
-                            {
-                                string before = seg.Substring(0, idx).Trim();
-                                string after = seg.Substring(idx).Trim();
-                                if (!string.IsNullOrEmpty(before)) leftList.Add(before);
-                                if (!string.IsNullOrEmpty(after)) rightList.Add(after);
-                            }
-                        }
-                    }
+                if (!line.Contains("카페", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                int cafeCount = line.Split(new[] { "카페" }, StringSplitOptions.None).Length - 1;
+                if (cafeCount == 1)
+                {
+                    AddSplitPair(line, "카페", leftKeywords, rightKeywords);
+                    continue;
+                }
+
+                foreach (var segment in line.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    AddSplitPair(segment, "카페", leftKeywords, rightKeywords);
                 }
             }
 
-            return (leftList, rightList);
+            return (leftKeywords, rightKeywords);
+        }
+
+        private static void AddSplitPair(string source, string separator, ICollection<string> leftKeywords, ICollection<string> rightKeywords)
+        {
+            int index = source.IndexOf(separator, StringComparison.Ordinal);
+            if (index < 0)
+            {
+                return;
+            }
+
+            string left = source[..index].Trim();
+            string right = source[index..].Trim();
+
+            if (!string.IsNullOrEmpty(left))
+            {
+                leftKeywords.Add(left);
+            }
+
+            if (!string.IsNullOrEmpty(right))
+            {
+                rightKeywords.Add(right);
+            }
         }
     }
 }

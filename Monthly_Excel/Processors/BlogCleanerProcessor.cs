@@ -214,7 +214,7 @@ namespace Monthly_Excel.Processors
                                 }
                             }
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
                             // 개별 이미지 실패는 계속 진행
                             continue;
@@ -247,8 +247,8 @@ namespace Monthly_Excel.Processors
         private class ImageInfo
         {
             public int idx { get; set; }
-            public string src { get; set; }
-            public string alt { get; set; }
+            public string src { get; set; } = string.Empty;
+            public string alt { get; set; } = string.Empty;
             public int width { get; set; }
             public int height { get; set; }
         }

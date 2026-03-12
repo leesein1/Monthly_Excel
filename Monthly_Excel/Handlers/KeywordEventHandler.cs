@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Windows.Forms;
 using Monthly_Excel.Processors;
@@ -7,67 +7,67 @@ namespace Monthly_Excel.Handlers
 {
     public class KeywordEventHandler
     {
-        private readonly TextBox inputKeywordBox;
-        private readonly ListBox leftListBox;
-        private readonly ListBox rightListBox;
+        private readonly TextBox _inputKeywordBox;
+        private readonly ListBox _leftListBox;
+        private readonly ListBox _rightListBox;
 
-        public KeywordEventHandler(TextBox input, ListBox left, ListBox right)
+        public KeywordEventHandler(TextBox inputKeywordBox, ListBox leftListBox, ListBox rightListBox)
         {
-            inputKeywordBox = input;
-            leftListBox = left;
-            rightListBox = right;
+            _inputKeywordBox = inputKeywordBox;
+            _leftListBox = leftListBox;
+            _rightListBox = rightListBox;
         }
 
-        public void OnConvertClicked(object sender, EventArgs e)
+        public void OnConvertClicked(object? sender, EventArgs e)
         {
-            if (inputKeywordBox == null || leftListBox == null || rightListBox == null)
-                return;
+            _leftListBox.Items.Clear();
+            _rightListBox.Items.Clear();
 
-            leftListBox.Items.Clear();
-            rightListBox.Items.Clear();
+            var (leftKeywords, rightKeywords) = KeywordProcessor.ProcessKeywords(_inputKeywordBox.Text);
 
-            var (left, right) = KeywordProcessor.ProcessKeywords(inputKeywordBox.Text);
+            foreach (var keyword in leftKeywords)
+            {
+                _leftListBox.Items.Add(keyword);
+            }
 
-            foreach (var item in left) leftListBox.Items.Add(item);
-            foreach (var item in right) rightListBox.Items.Add(item);
+            foreach (var keyword in rightKeywords)
+            {
+                _rightListBox.Items.Add(keyword);
+            }
         }
 
-        public void OnCopyLeftClicked(object sender, EventArgs e)
+        public void OnCopyLeftClicked(object? sender, EventArgs e)
         {
-            if (leftListBox.Items.Count == 0)
+            CopyItems(_leftListBox, "왼쪽 키워드가 복사되었습니다.");
+        }
+
+        public void OnCopyRightClicked(object? sender, EventArgs e)
+        {
+            CopyItems(_rightListBox, "오른쪽 키워드가 복사되었습니다.");
+        }
+
+        private void CopyItems(ListBox listBox, string successMessage)
+        {
+            if (listBox.Items.Count == 0)
             {
                 MessageBox.Show("복사할 항목이 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            string result = BuildExcelSafeString(leftListBox);
-            Clipboard.SetText(result);
-            MessageBox.Show("왼쪽 키워드가 복사되었습니다.", "복사 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Clipboard.SetText(BuildExcelSafeString(listBox));
+            MessageBox.Show(successMessage, "복사 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        public void OnCopyRightClicked(object sender, EventArgs e)
+        private static string BuildExcelSafeString(ListBox listBox)
         {
-            if (rightListBox.Items.Count == 0)
-            {
-                MessageBox.Show("복사할 항목이 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            string result = BuildExcelSafeString(rightListBox);
-            Clipboard.SetText(result);
-            MessageBox.Show("오른쪽 키워드가 복사되었습니다.", "복사 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private string BuildExcelSafeString(ListBox listBox)
-        {
-            var sb = new StringBuilder();
+            var builder = new StringBuilder();
 
             foreach (var item in listBox.Items)
             {
-                sb.AppendLine(item?.ToString());
+                builder.AppendLine(item?.ToString());
             }
 
-            return $"\"{sb.ToString().TrimEnd('\r', '\n')}\"";
+            return $"\"{builder.ToString().TrimEnd('\r', '\n')}\"";
         }
     }
 }
