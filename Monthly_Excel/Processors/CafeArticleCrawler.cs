@@ -12,6 +12,27 @@ namespace Monthly_Excel.Processors
 {
     internal sealed class CafeArticleCrawler : IDisposable
     {
+        private static readonly string[] TitleSelectors =
+        {
+            "h3.title_text",
+            ".article_header .title_text",
+            ".ArticleContentBox .title_text"
+        };
+
+        private static readonly string[] MetaInfoSelectors =
+        {
+            ".article_info > span",
+            ".ArticleContentBox .article_info > span"
+        };
+
+        private static readonly string[] CommentSelectors =
+        {
+            ".button_comment > strong.num",
+            ".comment_area strong.num",
+            ".CommentBox .comment_count",
+            ".CommentItemCount"
+        };
+
         private readonly IWebDriver _driver;
         private readonly WebDriverWait _wait;
         private readonly WebDriverWait _frameWait;
@@ -39,9 +60,9 @@ namespace Monthly_Excel.Processors
             _driver = new ChromeDriver(service, options);
             _driver.Manage().Timeouts().ImplicitWait = TimeSpan.Zero;
 
-            _wait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(30), TimeSpan.FromMilliseconds(200));
-            _frameWait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(20), TimeSpan.FromMilliseconds(200));
-            _shortWait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(200));
+            _wait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(12), TimeSpan.FromMilliseconds(200));
+            _frameWait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(12), TimeSpan.FromMilliseconds(200));
+            _shortWait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(200));
         }
 
         public async Task<CrawlResult> CrawlAsync(string url, string? keyword, int columnIndex)
@@ -56,6 +77,7 @@ namespace Monthly_Excel.Processors
             try
             {
                 _driver.Navigate().GoToUrl(url);
+                WaitForDocumentReady();
 
                 if (TryHandleDeletedPostAlert(result))
                 {
@@ -63,16 +85,14 @@ namespace Monthly_Excel.Processors
                 }
 
                 _frameWait.Until(ExpectedConditions.FrameToBeAvailableAndSwitchToIt("cafe_main"));
+                WaitForArticleReady();
 
-                result.Title = GetTextOrDefault(By.CssSelector("h3.title_text"), "[제목 없음]");
-                result.Views = ParseInt(
-                    GetTextOrDefault(By.CssSelector(".article_info span:nth-child(2)"), "0")
-                        .Replace("조회", string.Empty)
-                        .Replace(",", string.Empty)
-                        .Trim()
-                );
+                result.Title = GetTextOrDefault("[제목 없음]", TitleSelectors);
 
-                string rawDate = GetTextOrDefault(By.CssSelector(".article_info span:nth-child(1)"), string.Empty).Trim();
+                string[] metaTexts = GetMetaTexts();
+                result.Views = ParseInt(ExtractViewsText(metaTexts));
+
+                string rawDate = ExtractDateText(metaTexts);
                 string dateOnly = (rawDate.Split(' ').FirstOrDefault() ?? string.Empty)
                     .Replace(".", "-")
                     .Trim('-');
@@ -84,9 +104,9 @@ namespace Monthly_Excel.Processors
 
                 result.Comments = await GetCommentCountAsync();
             }
-            catch
+            catch (Exception exception)
             {
-                result.Title = "[크롤링 실패]";
+                result.Title = $"[크롤링 실패] {exception.GetType().Name}";
             }
             finally
             {
@@ -109,7 +129,7 @@ namespace Monthly_Excel.Processors
                 string alertText = activeAlert.Text ?? string.Empty;
 
                 if (alertText.Contains("삭제", StringComparison.OrdinalIgnoreCase) ||
-                    alertText.Contains("존재하지", StringComparison.OrdinalIgnoreCase))
+                    alertText.Contains("존재", StringComparison.OrdinalIgnoreCase))
                 {
                     result.Title = "[삭제된 글]";
                     activeAlert.Accept();
@@ -129,14 +149,8 @@ namespace Monthly_Excel.Processors
         {
             try
             {
-                await Task.Delay(1500);
-
-                string commentText = TryGetCommentText(".button_comment > strong.num");
-                if (string.IsNullOrWhiteSpace(commentText))
-                {
-                    commentText = TryGetCommentText(".comment_area strong.num");
-                }
-
+                await Task.Delay(400);
+                string commentText = GetTextOrDefault(string.Empty, CommentSelectors);
                 commentText = commentText.Replace(",", string.Empty).Trim();
                 return int.TryParse(commentText, out int comments) ? comments : 0;
             }
@@ -146,30 +160,95 @@ namespace Monthly_Excel.Processors
             }
         }
 
-        private string TryGetCommentText(string selector)
+        private void WaitForDocumentReady()
         {
             try
             {
-                return _driver.FindElement(By.CssSelector(selector)).Text?.Trim() ?? string.Empty;
+                _shortWait.Until(driver =>
+                {
+                    if (driver is not IJavaScriptExecutor js)
+                    {
+                        return true;
+                    }
+
+                    string state = js.ExecuteScript("return document.readyState")?.ToString() ?? string.Empty;
+                    return state.Equals("interactive", StringComparison.OrdinalIgnoreCase) ||
+                           state.Equals("complete", StringComparison.OrdinalIgnoreCase);
+                });
             }
-            catch
+            catch (WebDriverTimeoutException)
             {
-                return string.Empty;
             }
         }
 
-        private string GetTextOrDefault(By by, string fallback)
+        private void WaitForArticleReady()
         {
             try
             {
-                var element = _wait.Until(ExpectedConditions.ElementIsVisible(by));
-                var text = element?.Text?.Trim();
-                return string.IsNullOrWhiteSpace(text) ? fallback : text;
+                _wait.Until(_ => TitleSelectors.Any(selector => FindVisibleElement(selector) != null));
             }
-            catch
+            catch (WebDriverTimeoutException)
             {
-                return fallback;
             }
+        }
+
+        private string GetTextOrDefault(string fallback, params string[] selectors)
+        {
+            foreach (string selector in selectors)
+            {
+                string text = FindVisibleElement(selector)?.Text?.Trim() ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text;
+                }
+            }
+
+            return fallback;
+        }
+
+        private string[] GetMetaTexts()
+        {
+            foreach (string selector in MetaInfoSelectors)
+            {
+                var texts = _driver.FindElements(By.CssSelector(selector))
+                    .Select(element => element.Text?.Trim() ?? string.Empty)
+                    .Where(text => !string.IsNullOrWhiteSpace(text))
+                    .ToArray();
+
+                if (texts.Length > 0)
+                {
+                    return texts;
+                }
+            }
+
+            return Array.Empty<string>();
+        }
+
+        private IWebElement? FindVisibleElement(string selector)
+        {
+            return _driver.FindElements(By.CssSelector(selector))
+                .FirstOrDefault(element => element.Displayed);
+        }
+
+        private static string ExtractViewsText(string[] metaTexts)
+        {
+            string candidate = metaTexts.FirstOrDefault(text => text.Contains("조회", StringComparison.OrdinalIgnoreCase))
+                ?? metaTexts.Skip(1).FirstOrDefault()
+                ?? string.Empty;
+
+            return candidate
+                .Replace("조회", string.Empty)
+                .Replace(",", string.Empty)
+                .Trim();
+        }
+
+        private static string ExtractDateText(string[] metaTexts)
+        {
+            return metaTexts.FirstOrDefault(text =>
+                    text.Contains(".", StringComparison.Ordinal) ||
+                    text.Contains("-", StringComparison.Ordinal))
+                ?? metaTexts.FirstOrDefault()
+                ?? string.Empty;
         }
 
         private void TryResetFrame()
