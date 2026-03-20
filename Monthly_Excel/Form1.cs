@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Monthly_Excel.Handlers;
+using Monthly_Excel.Pages;
 
 namespace Monthly_Excel
 {
@@ -9,8 +10,15 @@ namespace Monthly_Excel
     {
         private readonly Size _defaultFormSize = new(532, 328);
         private readonly Size _defaultMinSize = new(516, 289);
+        private readonly Size _imageConverterFormSize = new(1180, 760);
+        private readonly Size _imageConverterMinSize = new(960, 640);
         private readonly Size _blogFormSize = new(1400, 900);
         private readonly Size _blogMinSize = new(1200, 800);
+
+        private readonly CrawlingPage _crawlingPage;
+        private readonly KeywordPage _keywordPage;
+        private readonly BlogCleanerPage _blogCleanerPage;
+        private readonly ImageConverterPage _imageConverterPage;
 
         private readonly CrawlingEventHandler _crawlingHandler;
         private readonly KeywordEventHandler _keywordHandler;
@@ -20,9 +28,19 @@ namespace Monthly_Excel
         {
             InitializeComponent();
 
-            _crawlingHandler = new CrawlingEventHandler(labelStatus, progressBar);
-            _keywordHandler = new KeywordEventHandler(inputKeywordBox, leftListBox, rightListBox);
-            _blogCleanerHandler = new BlogCleanerHandler(blogUrlTextBox, labelBlogStatus, blogWebView);
+            _crawlingPage = new CrawlingPage { Dock = DockStyle.Fill };
+            _keywordPage = new KeywordPage { Dock = DockStyle.Fill };
+            _blogCleanerPage = new BlogCleanerPage { Dock = DockStyle.Fill };
+            _imageConverterPage = new ImageConverterPage { Dock = DockStyle.Fill };
+
+            tabPageCrawling.Controls.Add(_crawlingPage);
+            tabPageKeyword.Controls.Add(_keywordPage);
+            tabPageBlogCleaner.Controls.Add(_blogCleanerPage);
+            tabPageImageConverter.Controls.Add(_imageConverterPage);
+
+            _crawlingHandler = new CrawlingEventHandler(_crawlingPage.LabelStatus, _crawlingPage.ProgressBar);
+            _keywordHandler = new KeywordEventHandler(_keywordPage.InputKeywordBox, _keywordPage.LeftListBox, _keywordPage.RightListBox);
+            _blogCleanerHandler = new BlogCleanerHandler(_blogCleanerPage.BlogUrlTextBox, _blogCleanerPage.LabelBlogStatus, _blogCleanerPage.BlogWebView);
 
             BindEvents();
         }
@@ -33,19 +51,19 @@ namespace Monthly_Excel
             FormClosing += Form1_FormClosing;
             tabControl.SelectedIndexChanged += TabControl_SelectedIndexChanged;
 
-            buttonUpload.Click += _crawlingHandler.OnUploadClicked;
-            buttonDownload.Click += _crawlingHandler.OnDownloadClicked;
-            buttonTemplateDownload.Click += _crawlingHandler.OnTemplateDownloadClicked;
+            _crawlingPage.ButtonUpload.Click += _crawlingHandler.OnUploadClicked;
+            _crawlingPage.ButtonDownload.Click += _crawlingHandler.OnDownloadClicked;
+            _crawlingPage.ButtonTemplateDownload.Click += _crawlingHandler.OnTemplateDownloadClicked;
 
-            convertButton.Click += _keywordHandler.OnConvertClicked;
-            copyLeftButton.Click += _keywordHandler.OnCopyLeftClicked;
-            copyRightButton.Click += _keywordHandler.OnCopyRightClicked;
+            _keywordPage.ConvertButton.Click += _keywordHandler.OnConvertClicked;
+            _keywordPage.CopyLeftButton.Click += _keywordHandler.OnCopyLeftClicked;
+            _keywordPage.CopyRightButton.Click += _keywordHandler.OnCopyRightClicked;
 
-            buttonBlogOpen.Click += ButtonBlogOpen_Click;
-            buttonBlogClean.Click += ButtonBlogClean_Click;
-            buttonBlogRefresh.Click += ButtonBlogRefresh_Click;
-            buttonBlogDownloadImages.Click += ButtonBlogDownloadImages_Click;
-            blogUrlTextBox.KeyDown += BlogUrlTextBox_KeyDown;
+            _blogCleanerPage.ButtonBlogOpen.Click += ButtonBlogOpen_Click;
+            _blogCleanerPage.ButtonBlogClean.Click += ButtonBlogClean_Click;
+            _blogCleanerPage.ButtonBlogRefresh.Click += ButtonBlogRefresh_Click;
+            _blogCleanerPage.ButtonBlogDownloadImages.Click += ButtonBlogDownloadImages_Click;
+            _blogCleanerPage.BlogUrlTextBox.KeyDown += BlogUrlTextBox_KeyDown;
         }
 
         private async void Form1_Load(object? sender, EventArgs e)
@@ -70,6 +88,11 @@ namespace Monthly_Excel
             {
                 MinimumSize = _blogMinSize;
                 Size = _blogFormSize;
+            }
+            else if (tabControl.SelectedTab == tabPageImageConverter)
+            {
+                MinimumSize = _imageConverterMinSize;
+                Size = _imageConverterFormSize;
             }
             else
             {

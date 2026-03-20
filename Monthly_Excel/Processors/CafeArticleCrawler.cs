@@ -6,7 +6,6 @@ using Monthly_Excel.Models;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 
 namespace Monthly_Excel.Processors
 {
@@ -84,7 +83,22 @@ namespace Monthly_Excel.Processors
                     return result;
                 }
 
-                _frameWait.Until(ExpectedConditions.FrameToBeAvailableAndSwitchToIt("cafe_main"));
+                _frameWait.Until(driver =>
+                {
+                    try
+                    {
+                        driver.SwitchTo().Frame("cafe_main");
+                        return true;
+                    }
+                    catch (NoSuchFrameException)
+                    {
+                        return false;
+                    }
+                    catch (StaleElementReferenceException)
+                    {
+                        return false;
+                    }
+                });
                 WaitForArticleReady();
 
                 result.Title = GetTextOrDefault("[제목 없음]", TitleSelectors);
@@ -120,7 +134,17 @@ namespace Monthly_Excel.Processors
         {
             try
             {
-                var alert = _shortWait.Until(ExpectedConditions.AlertIsPresent());
+                var alert = _shortWait.Until(driver =>
+                {
+                    try
+                    {
+                        return driver.SwitchTo().Alert();
+                    }
+                    catch (NoAlertPresentException)
+                    {
+                        return null;
+                    }
+                });
                 if (alert is not IAlert activeAlert)
                 {
                     return false;

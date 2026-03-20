@@ -19,7 +19,27 @@
         <PackageReference Include="Selenium.Support" Version="4.35.0" />
         <PackageReference Include="Selenium.WebDriver" Version="4.35.0" />
         <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="139.0.7258.15400" />
-        <PackageReference Include="SeleniumExtras.WaitHelpers" Version="1.0.2" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     </ItemGroup>
+
+    <Target Name="RemoveUnusedBuildArtifacts" AfterTargets="Build">
+        <ItemGroup>
+            <UnusedBuildArtifacts Include="$(OutDir)Microsoft.Web.WebView2.Wpf.dll" />
+            <UnusedBuildArtifacts Include="$(OutDir)Microsoft.Web.WebView2.Wpf.xml" />
+            <UnusedBuildArtifacts Include="$(OutDir)Microsoft.Web.WebView2.Core.xml" />
+            <UnusedBuildArtifacts Include="$(OutDir)Microsoft.Web.WebView2.WinForms.xml" />
+        </ItemGroup>
+        <Delete Files="@(UnusedBuildArtifacts)" TreatErrorsAsWarnings="true" />
+    </Target>
+
+    <Target Name="RemoveUnusedPublishArtifacts" AfterTargets="Publish">
+        <ItemGroup>
+            <UnusedPublishArtifacts Include="$(PublishDir)Microsoft.Web.WebView2.Wpf.dll" />
+            <UnusedPublishArtifacts Include="$(PublishDir)Microsoft.Web.WebView2.Wpf.xml" />
+            <UnusedPublishArtifacts Include="$(PublishDir)Microsoft.Web.WebView2.Core.xml" />
+            <UnusedPublishArtifacts Include="$(PublishDir)Microsoft.Web.WebView2.WinForms.xml" />
+        </ItemGroup>
+        <Delete Files="@(UnusedPublishArtifacts)" TreatErrorsAsWarnings="true" />
+    </Target>
 
 </Project>
