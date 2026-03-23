@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 
-namespace Monthly_Excel.Pages
+namespace Monthly_Excel.Pages.Keyword
 {
     public class KeywordPage : UserControl
     {
