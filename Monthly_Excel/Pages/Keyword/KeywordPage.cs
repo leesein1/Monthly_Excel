@@ -1,5 +1,6 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
+using Monthly_Excel.UI;
 
 namespace Monthly_Excel.Pages.Keyword
 {
@@ -16,29 +17,48 @@ namespace Monthly_Excel.Pages.Keyword
 
         public KeywordPage()
         {
+            AppTheme.ApplyPage(this);
+
+            var surface = AppTheme.CreateSurfacePanel();
             var keywordLayout = new TableLayoutPanel
             {
                 ColumnCount = 2,
                 Dock = DockStyle.Fill,
-                Padding = new Padding(10),
                 RowCount = 5,
+                BackColor = AppTheme.SurfaceBackground
             };
             keywordLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             keywordLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
-            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 60F));
-            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 25F));
+            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 74F));
+            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
             keywordLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44F));
+            keywordLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 8F));
 
-            InputKeywordBox = new TextBox { Dock = DockStyle.Fill, Multiline = true, ScrollBars = ScrollBars.Vertical };
-            ConvertButton = new Button { Dock = DockStyle.Fill, Text = "Convert" };
+            InputKeywordBox = new TextBox
+            {
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ScrollBars = ScrollBars.Vertical,
+                Margin = new Padding(0, 0, 8, 8),
+                PlaceholderText = "키워드를 줄 단위로 입력하세요."
+            };
+            ConvertButton = new Button { Dock = DockStyle.Fill, Text = "변환", Margin = new Padding(0, 0, 0, 8) };
             LabelLeft = new Label { Dock = DockStyle.Fill, Text = "키워드 1", TextAlign = ContentAlignment.MiddleLeft };
             LabelRight = new Label { Dock = DockStyle.Fill, Text = "키워드 2", TextAlign = ContentAlignment.MiddleLeft };
-            LeftListBox = new ListBox { Dock = DockStyle.Fill }; 
-            RightListBox = new ListBox { Dock = DockStyle.Fill };
-            CopyLeftButton = new Button { Dock = DockStyle.Right, Text = "복사" };
-            CopyRightButton = new Button { Dock = DockStyle.Right, Text = "복사" };
+            LeftListBox = new ListBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 8, 8) };
+            RightListBox = new ListBox { Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
+            CopyLeftButton = new Button { Dock = DockStyle.Fill, Text = "복사", Margin = new Padding(0, 0, 8, 0) };
+            CopyRightButton = new Button { Dock = DockStyle.Fill, Text = "복사", Margin = new Padding(0) };
+
+            AppTheme.StyleTextBox(InputKeywordBox);
+            AppTheme.StylePrimaryButton(ConvertButton);
+            AppTheme.StyleSectionLabel(LabelLeft);
+            AppTheme.StyleSectionLabel(LabelRight);
+            AppTheme.StyleListBox(LeftListBox);
+            AppTheme.StyleListBox(RightListBox);
+            AppTheme.StyleSecondaryButton(CopyLeftButton);
+            AppTheme.StyleSecondaryButton(CopyRightButton);
 
             keywordLayout.Controls.Add(InputKeywordBox, 0, 0);
             keywordLayout.Controls.Add(ConvertButton, 1, 0);
@@ -49,7 +69,8 @@ namespace Monthly_Excel.Pages.Keyword
             keywordLayout.Controls.Add(CopyLeftButton, 0, 3);
             keywordLayout.Controls.Add(CopyRightButton, 1, 3);
 
-            Controls.Add(keywordLayout);
+            surface.Controls.Add(keywordLayout);
+            Controls.Add(surface);
         }
     }
 }

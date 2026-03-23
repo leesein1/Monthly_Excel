@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using Monthly_Excel.Scripts;
+using Monthly_Excel.Utils;
 
 namespace Monthly_Excel.Processors
 {
     public class BlogCleanerProcessor : IDisposable
     {
+        private static readonly HttpClient SharedHttpClient = CreateHttpClient();
         private readonly WebView2 _webView;
         private readonly Action<string> _setStatus;
+        private string? _sessionFolderPath;
 
         private bool _initialized;
 
@@ -32,7 +35,11 @@ namespace Monthly_Excel.Processors
             {
                 _setStatus("브라우저 초기화 중...");
 
-                await _webView.EnsureCoreWebView2Async();
+                WebView2TempManager.CleanupOldSessionFolders(TimeSpan.FromHours(12));
+                WebView2TempManager.CleanupAllExcept(_sessionFolderPath);
+                _sessionFolderPath ??= WebView2TempManager.CreateSessionFolder();
+                var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: _sessionFolderPath);
+                await _webView.EnsureCoreWebView2Async(environment);
 
                 if (_webView.CoreWebView2 != null)
                 {
@@ -64,6 +71,7 @@ namespace Monthly_Excel.Processors
                     return;
                 }
 
+                await ClearNavigationCacheAsync();
                 _webView.Source = uri;
                 _setStatus("페이지 여는 중...");
             }
@@ -186,39 +194,34 @@ namespace Monthly_Excel.Processors
                 Directory.CreateDirectory(downloadPath);
 
                 int downloaded = 0;
-                using (var client = new HttpClient())
+                foreach (var image in images)
                 {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
-
-                    foreach (var image in images)
+                    try
                     {
-                        try
+                        if (string.IsNullOrEmpty(image.src))
+                            continue;
+
+                        string fileName = $"{image.idx:D4}_{SanitizeFileName(image.alt)}.jpg";
+                        string filePath = Path.Combine(downloadPath, fileName);
+
+                        _setStatus($"다운로드 중... ({downloaded + 1}/{images.Count})");
+
+                        using (var response = await SharedHttpClient.GetAsync(image.src))
                         {
-                            if (string.IsNullOrEmpty(image.src))
-                                continue;
-
-                            string fileName = $"{image.idx:D4}_{SanitizeFileName(image.alt)}.jpg";
-                            string filePath = Path.Combine(downloadPath, fileName);
-
-                            _setStatus($"다운로드 중... ({downloaded + 1}/{images.Count})");
-
-                            using (var response = await client.GetAsync(image.src))
+                            if (response.IsSuccessStatusCode)
                             {
-                                if (response.IsSuccessStatusCode)
+                                using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
                                 {
-                                    using (var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write))
-                                    {
-                                        await response.Content.CopyToAsync(fs);
-                                        downloaded++;
-                                    }
+                                    await response.Content.CopyToAsync(fs);
+                                    downloaded++;
                                 }
                             }
                         }
-                        catch (Exception)
-                        {
-                            // 개별 이미지 실패는 계속 진행
-                            continue;
-                        }
+                    }
+                    catch (Exception)
+                    {
+                        // 개별 이미지 실패는 계속 진행
+                        continue;
                     }
                 }
 
@@ -242,6 +245,30 @@ namespace Monthly_Excel.Processors
                 fileName = fileName.Substring(0, 50);
 
             return fileName;
+        }
+
+        private async Task ClearNavigationCacheAsync()
+        {
+            if (_webView.CoreWebView2?.Profile == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _setStatus("이전 캐시 정리 중...");
+
+                var kinds =
+                    CoreWebView2BrowsingDataKinds.DiskCache |
+                    CoreWebView2BrowsingDataKinds.BrowsingHistory |
+                    CoreWebView2BrowsingDataKinds.AllDomStorage;
+
+                await _webView.CoreWebView2.Profile.ClearBrowsingDataAsync(kinds);
+            }
+            catch (Exception ex)
+            {
+                _setStatus($"캐시 정리 실패: {ex.Message}");
+            }
         }
 
         private class ImageInfo
@@ -289,6 +316,18 @@ namespace Monthly_Excel.Processors
             {
                 _webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
             }
+
+            if (!string.IsNullOrWhiteSpace(_sessionFolderPath))
+            {
+                WebView2TempManager.TryDeleteDirectory(_sessionFolderPath);
+            }
+        }
+
+        private static HttpClient CreateHttpClient()
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+            return client;
         }
     }
 }

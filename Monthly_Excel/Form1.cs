@@ -3,11 +3,13 @@ using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Monthly_Excel.Controls;
 using Monthly_Excel.Handlers;
 using Monthly_Excel.Pages.BlogCleaner;
 using Monthly_Excel.Pages.Crawling;
 using Monthly_Excel.Pages.ImageConverter;
 using Monthly_Excel.Pages.Keyword;
+using Monthly_Excel.UI;
 
 namespace Monthly_Excel
 {
@@ -19,9 +21,10 @@ namespace Monthly_Excel
         private bool _isPreloading;
         private int _tabTransitionVersion;
         private readonly Panel _loadingOverlay;
-        private readonly Panel _loadingCard;
         private readonly Label _loadingLabel;
-        private readonly ProgressBar _loadingProgressBar;
+        private readonly CircularLoaderControl _loadingSpinner;
+        private readonly StatusStrip _statusStrip;
+        private readonly ToolStripStatusLabel _versionStatusLabel;
 
         private readonly CrawlingPage _crawlingPage;
         private readonly KeywordPage _keywordPage;
@@ -35,9 +38,11 @@ namespace Monthly_Excel
         public Form1()
         {
             InitializeComponent();
+            ApplyTheme();
             EnableDoubleBuffer(this);
             EnableDoubleBuffer(tabControl);
-            (_loadingOverlay, _loadingCard, _loadingLabel, _loadingProgressBar) = CreateLoadingOverlay();
+            (_loadingOverlay, _loadingLabel, _loadingSpinner) = CreateLoadingOverlay();
+            (_statusStrip, _versionStatusLabel) = CreateStatusStrip();
 
             (_crawlingPage, _keywordPage, _blogCleanerPage, _imageConverterPage) = CreatePages();
             AttachPages();
@@ -77,6 +82,8 @@ namespace Monthly_Excel
 
             Controls.Add(_loadingOverlay);
             _loadingOverlay.BringToFront();
+            Controls.Add(_statusStrip);
+            _statusStrip.BringToFront();
         }
 
         private (CrawlingEventHandler CrawlingHandler, KeywordEventHandler KeywordHandler, BlogCleanerHandler BlogCleanerHandler) CreateHandlers()
@@ -192,46 +199,86 @@ namespace Monthly_Excel
             return _defaultFormSize;
         }
 
-        private (Panel Overlay, Panel Card, Label Label, ProgressBar ProgressBar) CreateLoadingOverlay()
+        private (Panel Overlay, Label Label, CircularLoaderControl Spinner) CreateLoadingOverlay()
         {
             var overlay = new Panel
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(245, 247, 250),
+                BackColor = Color.FromArgb(236, 241, 246),
                 Visible = false
             };
             EnableDoubleBuffer(overlay);
 
-            var card = new Panel
-            {
-                Size = new Size(220, 92),
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
-            };
-
+            var spinner = new CircularLoaderControl();
             var label = new Label
             {
-                Dock = DockStyle.Top,
-                Height = 44,
+                AutoSize = false,
+                Size = new Size(180, 28),
                 Text = "로딩 중...",
-                TextAlign = ContentAlignment.BottomCenter,
-                Font = new Font(Font.FontFamily, 10F, FontStyle.Bold)
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = AppTheme.TitleFont,
+                ForeColor = AppTheme.TextPrimary,
+                BackColor = Color.Transparent
             };
 
-            var progressBar = new ProgressBar
+            overlay.Controls.Add(spinner);
+            overlay.Controls.Add(label);
+            overlay.Resize += (_, _) => CenterLoadingElements();
+
+            return (overlay, label, spinner);
+        }
+
+        private void ApplyTheme()
+        {
+            BackColor = AppTheme.AppBackground;
+            Font = AppTheme.BodyFont;
+            ForeColor = AppTheme.TextPrimary;
+            tabControl.Font = AppTheme.BodyFont;
+        }
+
+        private (StatusStrip StatusStrip, ToolStripStatusLabel VersionLabel) CreateStatusStrip()
+        {
+            var statusStrip = new StatusStrip
             {
-                Dock = DockStyle.Top,
-                Height = 18,
-                Style = ProgressBarStyle.Marquee,
-                MarqueeAnimationSpeed = 24
+                Dock = DockStyle.Bottom,
+                SizingGrip = false,
+                BackColor = AppTheme.SurfaceMuted
             };
 
-            card.Controls.Add(progressBar);
-            card.Controls.Add(label);
-            overlay.Controls.Add(card);
-            overlay.Resize += (_, _) => CenterLoadingCard();
+            var fillerLabel = new ToolStripStatusLabel
+            {
+                Spring = true
+            };
 
-            return (overlay, card, label, progressBar);
+            var versionLabel = new ToolStripStatusLabel
+            {
+                Text = $"v{GetDisplayVersion()}",
+                ForeColor = AppTheme.TextMuted,
+                TextAlign = ContentAlignment.MiddleRight
+            };
+
+            statusStrip.Items.Add(fillerLabel);
+            statusStrip.Items.Add(versionLabel);
+
+            return (statusStrip, versionLabel);
+        }
+
+        private static string GetDisplayVersion()
+        {
+            var informationalVersion =
+                Assembly.GetExecutingAssembly()
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+                    ?.InformationalVersion;
+
+            if (!string.IsNullOrWhiteSpace(informationalVersion))
+            {
+                var separatorIndex = informationalVersion.IndexOf('+');
+                return separatorIndex >= 0
+                    ? informationalVersion[..separatorIndex]
+                    : informationalVersion;
+            }
+
+            return Application.ProductVersion;
         }
 
         private async Task ShowTabTransitionAsync()
@@ -257,27 +304,31 @@ namespace Monthly_Excel
             _loadingLabel.Text = "로딩 중...";
             _loadingOverlay.Visible = true;
             _loadingOverlay.BringToFront();
+            _loadingSpinner.Visible = true;
             tabControl.Enabled = false;
-            CenterLoadingCard();
+            CenterLoadingElements();
         }
 
         private void HideLoadingOverlay()
         {
             tabControl.Enabled = true;
+            _loadingSpinner.Visible = false;
             _loadingOverlay.Visible = false;
         }
 
         private void UpdateLoadingOverlayBounds()
         {
             _loadingOverlay.Bounds = ClientRectangle;
-            CenterLoadingCard();
+            CenterLoadingElements();
         }
 
-        private void CenterLoadingCard()
+        private void CenterLoadingElements()
         {
-            var x = Math.Max(0, (_loadingOverlay.ClientSize.Width - _loadingCard.Width) / 2);
-            var y = Math.Max(0, (_loadingOverlay.ClientSize.Height - _loadingCard.Height) / 2);
-            _loadingCard.Location = new Point(x, y);
+            var centerX = _loadingOverlay.ClientSize.Width / 2;
+            var centerY = _loadingOverlay.ClientSize.Height / 2;
+
+            _loadingSpinner.Location = new Point(centerX - (_loadingSpinner.Width / 2), centerY - 34);
+            _loadingLabel.Location = new Point(centerX - (_loadingLabel.Width / 2), _loadingSpinner.Bottom + 10);
         }
 
         private static void EnableDoubleBuffer(Control control)

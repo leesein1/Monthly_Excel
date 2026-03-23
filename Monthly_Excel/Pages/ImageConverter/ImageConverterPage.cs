@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using Monthly_Excel.UI;
 
 namespace Monthly_Excel.Pages.ImageConverter
 {
@@ -20,6 +21,7 @@ namespace Monthly_Excel.Pages.ImageConverter
         private readonly SplitContainer _middleSplit;
         private readonly Dictionary<string, Bitmap> _previewCache = new(StringComparer.OrdinalIgnoreCase);
         private readonly LinkedList<string> _previewCacheOrder = new();
+        private string? _loadedFolderPath;
 
         public TextBox FolderTextBox { get; }
         public Button ChooseFolderButton { get; }
@@ -47,6 +49,7 @@ namespace Monthly_Excel.Pages.ImageConverter
 
         public ImageConverterPage()
         {
+            AppTheme.ApplyPage(this);
             _previewTimer = new System.Windows.Forms.Timer { Interval = 180 };
             _previewTimer.Tick += PreviewTimer_Tick;
 
@@ -67,7 +70,7 @@ namespace Monthly_Excel.Pages.ImageConverter
             };
             topBar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             topBar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            topBar.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            topBar.RowStyles.Add(new RowStyle(SizeType.Absolute, 34F));
             topBar.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
             FolderTextBox = new TextBox
@@ -76,7 +79,14 @@ namespace Monthly_Excel.Pages.ImageConverter
                 Margin = new Padding(0, 0, 8, 8),
                 PlaceholderText = "이미지 폴더 경로를 입력하거나 선택하세요."
             };
-            ChooseFolderButton = new Button { Text = "폴더 선택", AutoSize = true, MinimumSize = new Size(92, 30), Margin = new Padding(0, 0, 0, 8) };
+            ChooseFolderButton = new Button
+            {
+                Text = "폴더 선택",
+                AutoSize = false,
+                Size = new Size(92, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left,
+                Margin = new Padding(0, 0, 0, 8)
+            };
             RefreshButton = new Button { Text = "새로고침", AutoSize = true, MinimumSize = new Size(92, 30), Margin = new Padding(0, 0, 8, 0) };
             SelectAllButton = new Button { Text = SelectAllText, AutoSize = true, MinimumSize = new Size(104, 30), Margin = new Padding(0) };
 
@@ -275,8 +285,27 @@ namespace Monthly_Excel.Pages.ImageConverter
             SelectedImageListBox.DoubleClick += SelectedImageListBox_DoubleClick;
             ConvertButton.Click += ConvertButton_Click;
 
+            ApplyTheme();
             Load += (_, _) => UpdateResponsiveLayout();
             Resize += (_, _) => UpdateResponsiveLayout();
+        }
+
+        private void ApplyTheme()
+        {
+            BackColor = AppTheme.AppBackground;
+            FolderPathDisplay.ForeColor = AppTheme.AccentStrong;
+            StatusLabel.ForeColor = AppTheme.TextMuted;
+            _availableHeaderLabel.ForeColor = AppTheme.TextPrimary;
+            _selectedHeaderLabel.ForeColor = AppTheme.TextPrimary;
+            _previewHintLabel.ForeColor = Color.FromArgb(224, 229, 235);
+
+            AppTheme.StyleTextBox(FolderTextBox);
+            AppTheme.StylePrimaryButton(ChooseFolderButton);
+            AppTheme.StyleSecondaryButton(RefreshButton);
+            AppTheme.StyleSecondaryButton(SelectAllButton);
+            AppTheme.StyleSecondaryButton(ConvertButton);
+            AppTheme.StyleListBox(ImageListBox);
+            AppTheme.StyleListBox(SelectedImageListBox);
         }
 
     }

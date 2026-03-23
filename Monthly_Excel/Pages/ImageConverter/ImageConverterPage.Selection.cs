@@ -123,6 +123,12 @@ namespace Monthly_Excel.Pages.ImageConverter
                 FolderTextBox.Text = folderPath;
             }
 
+            if (!string.Equals(_loadedFolderPath, folderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                ClearPreviewCache();
+                _loadedFolderPath = folderPath;
+            }
+
             var files = GetImageFiles(folderPath);
             foreach (var filePath in files)
             {
