@@ -2,7 +2,7 @@
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![C#](https://img.shields.io/badge/C%23-WinForms-blue)
-![Version](https://img.shields.io/badge/version-1.1.0-2b7a78)
+![Version](https://img.shields.io/badge/version-1.2.0-2b7a78)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 > 반복 업무를 줄이기 위해 만든 **WinForms 기반 데스크톱 자동화 도구**입니다.
@@ -51,7 +51,7 @@
 - 이미지 다운로드 및 변환
 - 키워드 정리
 
-현재 버전은 `v1.1.0`이며, 다음과 같은 개선이 반영되어 있습니다.
+현재 버전은 `v1.2.0`이며, 다음과 같은 개선이 반영되어 있습니다.
 
 - 구조 리팩토링 (Pages / Handlers / Processors 분리)
 - UI 스타일 통일
@@ -201,3 +201,22 @@ bin/Release/net8.0-windows/
 # License
 
 MIT License
+
+---
+
+# Patch Notes
+
+## 2026-03-22 (v1.1.0)
+- 프로젝트 초기 작성 및 기본 탭 구성 완료
+- 크롤링 / 키워드 / 블로그 정리 / 이미지 변환 기능 정리
+- Pages / Handlers / Processors 구조 기반 리팩토링 반영
+
+## 2026-03-29 (v1.2.0)
+- `맞춤법` 탭 추가 (WebView2 기반 사람인 맞춤법 페이지 연동)
+- 맞춤법 화면 불필요 영역 제거 및 표시 영역/스크롤 동작 보정
+- 맞춤법 배율 조절 기능 개선 (숫자 입력 + 마우스 휠)
+- 배율 저장 체크 옵션 추가 및 설정 저장(JSON) 연동
+- `설정` 탭 추가
+- 탭 표시/숨김, 순서 변경(버튼 + 드래그 + 키보드) 기능 추가
+- 모든 설정 초기화 기능 추가
+- 탭/설정 상태 재실행 유지 기능 강화 (로컬 설정 파일 저장/로드)

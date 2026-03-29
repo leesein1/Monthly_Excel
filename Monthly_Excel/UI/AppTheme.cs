@@ -38,7 +38,7 @@ namespace Monthly_Excel.UI
         public static void StylePrimaryButton(Button button)
         {
             button.AutoSize = false;
-            button.Height = 34;
+            button.Height = 28;
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderSize = 0;
             button.BackColor = Accent;
@@ -49,7 +49,7 @@ namespace Monthly_Excel.UI
         public static void StyleSecondaryButton(Button button)
         {
             button.AutoSize = false;
-            button.Height = 34;
+            button.Height = 28;
             button.FlatStyle = FlatStyle.Flat;
             button.FlatAppearance.BorderColor = Border;
             button.FlatAppearance.BorderSize = 1;
