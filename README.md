@@ -2,7 +2,7 @@
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![C#](https://img.shields.io/badge/C%23-WinForms-blue)
-![Version](https://img.shields.io/badge/version-1.2.0-2b7a78)
+![Version](https://img.shields.io/badge/version-1.2.1-2b7a78)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 > 반복 업무를 줄이기 위해 만든 **WinForms 기반 데스크톱 자동화 도구**입니다.
@@ -51,7 +51,7 @@
 - 이미지 다운로드 및 변환
 - 키워드 정리
 
-현재 버전은 `v1.2.0`이며, 다음과 같은 개선이 반영되어 있습니다.
+현재 버전은 `v1.2.1`이며, 다음과 같은 개선이 반영되어 있습니다.
 
 - 구조 리팩토링 (Pages / Handlers / Processors 분리)
 - UI 스타일 통일
@@ -220,3 +220,11 @@ MIT License
 - 탭 표시/숨김, 순서 변경(버튼 + 드래그 + 키보드) 기능 추가
 - 모든 설정 초기화 기능 추가
 - 탭/설정 상태 재실행 유지 기능 강화 (로컬 설정 파일 저장/로드)
+
+## 2026-03-29 (v1.2.1)
+- 크롤링 실행 중 UI 멈춤 현상 완화: Selenium 동기 구간을 백그라운드 워커에서 수행하도록 변경
+- 크롤링 취소 기능 추가: 실행 중 다운로드 버튼을 다시 누르면 취소 요청 처리
+- 중복 실행 방지 및 버튼 상태 제어 추가 (업로드/템플릿 버튼 비활성화)
+- 진행률 표시 개선: 완료 건수 기반 진행률(%) 및 상태 문구 실시간 갱신
+- 안정성 보강: `CancellationToken` 전파, 폼 종료 시 진행 중 크롤링 취소 요청
+- 과부하 완화: 크롤링 동시 워커 수 상한을 2로 제한

@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using Monthly_Excel.Models;
@@ -11,7 +12,13 @@ namespace Monthly_Excel.Processors
 {
     public static class CrawlingProcessor
     {
-        public static async Task SaveUrlsWithCrawlInfoToExcel(string savePath, IReadOnlyList<string> urlList, IReadOnlyList<string> keywordList)
+        public static async Task SaveUrlsWithCrawlInfoToExcel(
+            string savePath,
+            IReadOnlyList<string> urlList,
+            IReadOnlyList<string> keywordList,
+            IProgress<CrawlProgress>? progress = null,
+            CancellationToken cancellationToken = default,
+            int maxConcurrency = 2)
         {
             if (urlList == null || urlList.Count == 0)
             {
@@ -39,7 +46,8 @@ namespace Monthly_Excel.Processors
                 throw new ArgumentException("유효한 URL이 없습니다.", nameof(urlList));
             }
 
-            var results = await CrawlAllAsync(crawlTargets);
+            cancellationToken.ThrowIfCancellationRequested();
+            var results = await CrawlAllAsync(crawlTargets, progress, cancellationToken, maxConcurrency).ConfigureAwait(false);
 
             using var workbook = new XLWorkbook();
             CrawlWorkbookWriter.WriteResults(
@@ -48,6 +56,8 @@ namespace Monthly_Excel.Processors
                 crawlTargets.Select(item => item.Keyword).ToList(),
                 results
             );
+
+            cancellationToken.ThrowIfCancellationRequested();
             workbook.SaveAs(savePath);
         }
 
@@ -69,24 +79,38 @@ namespace Monthly_Excel.Processors
             }
         }
 
-        private static async Task<IReadOnlyCollection<CrawlResult>> CrawlAllAsync(IReadOnlyList<CrawlTarget> crawlTargets)
+        private static async Task<IReadOnlyCollection<CrawlResult>> CrawlAllAsync(
+            IReadOnlyList<CrawlTarget> crawlTargets,
+            IProgress<CrawlProgress>? progress,
+            CancellationToken cancellationToken,
+            int maxConcurrency)
         {
-            int workerCount = crawlTargets.Count < 3 ? 1 : 3;
+            int workerCount = Math.Min(
+                Math.Max(1, maxConcurrency),
+                Math.Min(2, crawlTargets.Count));
+
             var partitions = MakeContiguousPartitions(crawlTargets, workerCount);
             var results = new ConcurrentBag<CrawlResult>();
+            int total = crawlTargets.Count;
+            int completed = 0;
 
-            var tasks = partitions.Select(async partition =>
+            var tasks = partitions.Select(partition => Task.Run(async () =>
             {
                 using var crawler = new CafeArticleCrawler();
 
                 foreach (var target in partition)
                 {
-                    var result = await crawler.CrawlAsync(target.Url, target.Keyword, target.ColumnIndex);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var result = await crawler.CrawlAsync(target.Url, target.Keyword, target.ColumnIndex, cancellationToken)
+                        .ConfigureAwait(false);
                     results.Add(result);
-                }
-            });
 
-            await Task.WhenAll(tasks);
+                    int current = Interlocked.Increment(ref completed);
+                    progress?.Report(new CrawlProgress(current, total, target.Url));
+                }
+            }, cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
             return results.ToList();
         }
 

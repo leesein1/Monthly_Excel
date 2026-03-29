@@ -110,7 +110,12 @@ namespace Monthly_Excel
         private (CrawlingEventHandler CrawlingHandler, KeywordEventHandler KeywordHandler, BlogCleanerHandler BlogCleanerHandler) CreateHandlers()
         {
             return (
-                new CrawlingEventHandler(_crawlingPage.LabelStatus, _crawlingPage.ProgressBar),
+                new CrawlingEventHandler(
+                    _crawlingPage.LabelStatus,
+                    _crawlingPage.ProgressBar,
+                    _crawlingPage.ButtonUpload,
+                    _crawlingPage.ButtonDownload,
+                    _crawlingPage.ButtonTemplateDownload),
                 new KeywordEventHandler(_keywordPage.InputKeywordBox, _keywordPage.LeftListBox, _keywordPage.RightListBox),
                 new BlogCleanerHandler(_blogCleanerPage.BlogUrlTextBox, _blogCleanerPage.LabelBlogStatus, _blogCleanerPage.BlogWebView)
             );
@@ -179,6 +184,7 @@ namespace Monthly_Excel
 
         private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
+            _crawlingHandler.CancelDownload();
             _blogCleanerHandler.Dispose();
         }
 

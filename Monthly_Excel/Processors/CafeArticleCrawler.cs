@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Monthly_Excel.Models;
 using OpenQA.Selenium;
@@ -64,7 +65,7 @@ namespace Monthly_Excel.Processors
             _shortWait = new WebDriverWait(new SystemClock(), _driver, TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(200));
         }
 
-        public async Task<CrawlResult> CrawlAsync(string url, string? keyword, int columnIndex)
+        public async Task<CrawlResult> CrawlAsync(string url, string? keyword, int columnIndex, CancellationToken cancellationToken = default)
         {
             var result = new CrawlResult
             {
@@ -75,7 +76,9 @@ namespace Monthly_Excel.Processors
 
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 _driver.Navigate().GoToUrl(url);
+                cancellationToken.ThrowIfCancellationRequested();
                 WaitForDocumentReady();
 
                 if (TryHandleDeletedPostAlert(result))
@@ -99,6 +102,7 @@ namespace Monthly_Excel.Processors
                         return false;
                     }
                 });
+                cancellationToken.ThrowIfCancellationRequested();
                 WaitForArticleReady();
 
                 result.Title = GetTextOrDefault("[제목 없음]", TitleSelectors);
@@ -116,7 +120,11 @@ namespace Monthly_Excel.Processors
                     result.WrittenDate = writtenDate;
                 }
 
-                result.Comments = await GetCommentCountAsync();
+                result.Comments = await GetCommentCountAsync(cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception exception)
             {
@@ -169,14 +177,18 @@ namespace Monthly_Excel.Processors
             return false;
         }
 
-        private async Task<int> GetCommentCountAsync()
+        private async Task<int> GetCommentCountAsync(CancellationToken cancellationToken)
         {
             try
             {
-                await Task.Delay(400);
+                await Task.Delay(400, cancellationToken);
                 string commentText = GetTextOrDefault(string.Empty, CommentSelectors);
                 commentText = commentText.Replace(",", string.Empty).Trim();
                 return int.TryParse(commentText, out int comments) ? comments : 0;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
             }
             catch
             {
