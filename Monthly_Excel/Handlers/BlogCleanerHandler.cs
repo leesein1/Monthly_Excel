@@ -31,7 +31,6 @@ namespace Monthly_Excel.Handlers
         public async Task InitializeAsync()
         {
             await _processor.InitializeAsync();
-            SetStatus("준비 완료");
         }
 
         public async Task OpenAsync()

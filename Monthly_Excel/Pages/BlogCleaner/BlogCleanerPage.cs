@@ -88,7 +88,6 @@ namespace Monthly_Excel.Pages.BlogCleaner
             BlogWebView = new Microsoft.Web.WebView2.WinForms.WebView2
             {
                 Dock = DockStyle.Fill,
-                Source = new System.Uri("https://blog.naver.com", System.UriKind.Absolute),
                 ZoomFactor = 1D
             };
 

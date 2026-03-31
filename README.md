@@ -2,7 +2,7 @@
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![C#](https://img.shields.io/badge/C%23-WinForms-blue)
-![Version](https://img.shields.io/badge/version-1.2.1-2b7a78)
+![Version](https://img.shields.io/badge/version-1.2.2-2b7a78)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 > 반복 업무를 줄이기 위해 만든 **WinForms 기반 데스크톱 자동화 도구**입니다.
@@ -51,7 +51,7 @@
 - 이미지 다운로드 및 변환
 - 키워드 정리
 
-현재 버전은 `v1.2.1`이며, 다음과 같은 개선이 반영되어 있습니다.
+현재 버전은 `v1.2.2`이며, 다음과 같은 개선이 반영되어 있습니다.
 
 - 구조 리팩토링 (Pages / Handlers / Processors 분리)
 - UI 스타일 통일
@@ -228,3 +228,10 @@ MIT License
 - 진행률 표시 개선: 완료 건수 기반 진행률(%) 및 상태 문구 실시간 갱신
 - 안정성 보강: `CancellationToken` 전파, 폼 종료 시 진행 중 크롤링 취소 요청
 - 과부하 완화: 크롤링 동시 워커 수 상한을 2로 제한
+
+## 2026-03-31 (v1.2.2)
+- 블로그 탭 초기 진입 시 `WebView2` 재초기화 충돌 오류(`already initialized with a different CoreWebView2Environment`) 대응
+- 블로그 탭 검은 화면(about:blank) 문제 수정: 초기화 완료 후 기본 블로그 페이지 자동 로드
+- 블로그 정리/새로고침/이미지 다운로드 동작 안정화: CoreWebView2 미준비 상태에서 재초기화 후 실행하도록 보강
+- 정리 버튼 타이밍 개선: 본문 DOM 로드 확인 후 정리 스크립트 실행하도록 변경
+- 상태 메시지 정리: 초기화 실패 상태가 `준비 완료`로 덮어써지지 않도록 수정
