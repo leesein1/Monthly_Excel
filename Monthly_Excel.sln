@@ -5,6 +5,8 @@ VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monthly_Excel", "Monthly_Excel\Monthly_Excel.csproj", "{7BB53C14-F710-4072-980D-5168A73C53C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monthly_Excel.Launcher", "Monthly_Excel.Launcher\Monthly_Excel.Launcher.csproj", "{AAF46A38-A745-43FD-8806-6EFD0A1389A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7BB53C14-F710-4072-980D-5168A73C53C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BB53C14-F710-4072-980D-5168A73C53C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BB53C14-F710-4072-980D-5168A73C53C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAF46A38-A745-43FD-8806-6EFD0A1389A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAF46A38-A745-43FD-8806-6EFD0A1389A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAF46A38-A745-43FD-8806-6EFD0A1389A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAF46A38-A745-43FD-8806-6EFD0A1389A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
