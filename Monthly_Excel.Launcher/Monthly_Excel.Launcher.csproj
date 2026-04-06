@@ -9,6 +9,34 @@
     <Version>1.0.0</Version>
     <FileVersion>1.0.0.0</FileVersion>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <DeploymentRoot Condition="'$(SolutionDir)' != ''">$(SolutionDir)dist\$(Configuration)\Monthly_Excel\</DeploymentRoot>
+    <MainProjectOutputDir Condition="'$(SolutionDir)' != ''">$(SolutionDir)Monthly_Excel\bin\$(Configuration)\net8.0-windows\</MainProjectOutputDir>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Monthly_Excel\Monthly_Excel.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <Target Name="PrepareDeploymentFolder" BeforeTargets="Build" Condition="'$(DeploymentRoot)' != ''">
+    <RemoveDir Directories="$(DeploymentRoot)" />
+    <MakeDir Directories="$(DeploymentRoot)" />
+  </Target>
+
+  <Target Name="AssembleDeploymentFolder" AfterTargets="Build" Condition="'$(DeploymentRoot)' != '' and Exists('$(MainProjectOutputDir)')">
+    <ItemGroup>
+      <MainDeploymentFiles Include="$(MainProjectOutputDir)**\*.*" />
+      <LauncherDeploymentFiles Include="$(OutDir)**\*.*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(MainDeploymentFiles)"
+      DestinationFiles="@(MainDeploymentFiles->'$(DeploymentRoot)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+
+    <Copy
+      SourceFiles="@(LauncherDeploymentFiles)"
+      DestinationFiles="@(LauncherDeploymentFiles->'$(DeploymentRoot)%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
