@@ -7,7 +7,7 @@
         private System.Windows.Forms.TabPage tabPageCrawling;
         private System.Windows.Forms.TabPage tabPageKeyword;
         private System.Windows.Forms.TabPage tabPageBlogCleaner;
-        private System.Windows.Forms.TabPage tabPageSpellChecker;
+        private System.Windows.Forms.TabPage tabPageInspector;
         private System.Windows.Forms.TabPage tabPageImageConverter;
         private System.Windows.Forms.TabPage tabPageSettings;
 
@@ -27,7 +27,7 @@
             tabPageCrawling = new System.Windows.Forms.TabPage();
             tabPageKeyword = new System.Windows.Forms.TabPage();
             tabPageBlogCleaner = new System.Windows.Forms.TabPage();
-            tabPageSpellChecker = new System.Windows.Forms.TabPage();
+            tabPageInspector = new System.Windows.Forms.TabPage();
             tabPageImageConverter = new System.Windows.Forms.TabPage();
             tabPageSettings = new System.Windows.Forms.TabPage();
             SuspendLayout();
@@ -37,7 +37,7 @@
             tabControl.Controls.Add(tabPageCrawling);
             tabControl.Controls.Add(tabPageKeyword);
             tabControl.Controls.Add(tabPageBlogCleaner);
-            tabControl.Controls.Add(tabPageSpellChecker);
+            tabControl.Controls.Add(tabPageInspector);
             tabControl.Controls.Add(tabPageImageConverter);
             tabControl.Controls.Add(tabPageSettings);
             tabControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -77,15 +77,15 @@
             tabPageBlogCleaner.Text = "블로그 정리";
             tabPageBlogCleaner.UseVisualStyleBackColor = true;
             // 
-            // tabPageSpellChecker
+            // tabPageInspector
             // 
-            tabPageSpellChecker.Location = new System.Drawing.Point(4, 24);
-            tabPageSpellChecker.Name = "tabPageSpellChecker";
-            tabPageSpellChecker.Padding = new System.Windows.Forms.Padding(10);
-            tabPageSpellChecker.Size = new System.Drawing.Size(508, 261);
-            tabPageSpellChecker.TabIndex = 3;
-            tabPageSpellChecker.Text = "맞춤법";
-            tabPageSpellChecker.UseVisualStyleBackColor = true;
+            tabPageInspector.Location = new System.Drawing.Point(4, 24);
+            tabPageInspector.Name = "tabPageInspector";
+            tabPageInspector.Padding = new System.Windows.Forms.Padding(10);
+            tabPageInspector.Size = new System.Drawing.Size(508, 261);
+            tabPageInspector.TabIndex = 3;
+            tabPageInspector.Text = "검사기";
+            tabPageInspector.UseVisualStyleBackColor = true;
             // 
             // tabPageImageConverter
             // 

@@ -2,7 +2,7 @@
 
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![C#](https://img.shields.io/badge/C%23-WinForms-blue)
-![Version](https://img.shields.io/badge/version-1.2.2-2b7a78)
+![Version](https://img.shields.io/badge/version-1.2.3-2b7a78)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 > 반복 업무를 줄이기 위해 만든 **WinForms 기반 데스크톱 자동화 도구**입니다.
@@ -11,12 +11,13 @@
 네이버 카페 URL 기반 데이터 수집부터 블로그 정리, 키워드 정리, 이미지 변환까지  
 실제 업무 흐름을 줄이기 위해 만든 **실사용 자동화 프로젝트**입니다.
 
-현재는 **4개의 주요 기능 탭**을 중심으로 동작합니다.
+현재는 **5개의 주요 기능 탭**을 중심으로 동작합니다.
 
 - 크롤링
 - 키워드 정리
 - 블로그 정리
 - 이미지 변환
+- 검사기
 
 ---
 
@@ -51,13 +52,14 @@
 - 이미지 다운로드 및 변환
 - 키워드 정리
 
-현재 버전은 `v1.2.2`이며, 다음과 같은 개선이 반영되어 있습니다.
+현재 버전은 `v1.2.3`이며, 다음과 같은 개선이 반영되어 있습니다.
 
 - 구조 리팩토링 (Pages / Handlers / Processors 분리)
 - UI 스타일 통일
 - 로딩 UX 개선
 - WebView2 캐시 관리
 - 이미지 미리보기 성능 개선
+- 검사기 탭 확장 (글자수 + 번역기)
 
 ---
 
@@ -103,6 +105,17 @@ WebView2 기반으로 블로그를 열고 본문을 정리하거나 이미지를
 - 이미지 목록 / 선택 목록 분리
 - 미리보기
 - 일괄 변환
+
+---
+
+## 5. 검사기
+
+글자수 확인과 번역 작업을 한 화면에서 빠르게 전환할 수 있습니다.
+
+- 사람인 글자수 도구 연동
+- Papago 번역기 연동
+- 라디오 버튼 전환
+- 도구 선로드로 빠른 화면 전환
 
 ---
 
@@ -188,6 +201,27 @@ dotnet run --project Monthly_Excel/Monthly_Excel.csproj
 bin/Release/net8.0-windows/
 ```
 
+Github Releases 배포용 소스 생성 스크립트는 아래처럼 실행합니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Publish-ReleaseAssets.ps1 `
+  -Version "v1.2.3" `
+  -Owner "leesein1" `
+  -Repository "Monthly_Excel"
+```
+
+이미 `Release` 빌드가 끝난 상태라면 `-SkipBuild`를 추가하면 됩니다.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\Publish-ReleaseAssets.ps1 `
+  -Version "v1.2.3" `
+  -Owner "leesein1" `
+  -Repository "Monthly_Excel" `
+  -SkipBuild
+```
+
+생성 결과물은 `.artifacts/releases/<tag>/upload` 아래에 만들어지며, `manifest.json`, `app__*`, `launcher__*`, 포터블 zip을 GitHub Release assets에 업로드하면 됩니다.
+
 ---
 
 # Notes
@@ -235,3 +269,10 @@ MIT License
 - 블로그 정리/새로고침/이미지 다운로드 동작 안정화: CoreWebView2 미준비 상태에서 재초기화 후 실행하도록 보강
 - 정리 버튼 타이밍 개선: 본문 DOM 로드 확인 후 정리 스크립트 실행하도록 변경
 - 상태 메시지 정리: 초기화 실패 상태가 `준비 완료`로 덮어써지지 않도록 수정
+
+## 2026-04-06 (v1.2.3)
+- 맞춤법 전용 탭을 `검사기` 탭으로 확장
+- 글자수 확인 외에 번역 작업도 자주 필요해 `Papago` 번역기 추가
+- 글자수 / 번역기 라디오 버튼 전환 UI 추가
+- 두 도구를 미리 로드하도록 변경해 전환 시 재로딩 없이 빠르게 표시되도록 개선
+- 관련 페이지/클래스 명칭을 `Inspector` 기준으로 정리

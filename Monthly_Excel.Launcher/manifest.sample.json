@@ -1,16 +1,16 @@
 {
-  "version": "1.2.2",
+  "version": "<tag>",
   "files": [
     {
       "path": "Monthly_Excel.exe",
       "sha256": "PUT_SHA256_HERE",
-      "downloadUrl": "https://github.com/<owner>/<repo>/releases/download/v1.2.2/Monthly_Excel.exe",
+      "downloadUrl": "https://github.com/<owner>/<repo>/releases/download/<tag>/Monthly_Excel.exe",
       "size": 0
     },
     {
       "path": "Monthly_Excel.dll",
       "sha256": "PUT_SHA256_HERE",
-      "downloadUrl": "https://github.com/<owner>/<repo>/releases/download/v1.2.2/Monthly_Excel.dll",
+      "downloadUrl": "https://github.com/<owner>/<repo>/releases/download/<tag>/Monthly_Excel.dll",
       "size": 0
     }
   ]

@@ -6,9 +6,9 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.0</Version>
-    <FileVersion>1.0.0.0</FileVersion>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Version>1.2.3</Version>
+    <FileVersion>1.2.3.0</FileVersion>
+    <AssemblyVersion>1.2.3.0</AssemblyVersion>
     <DeploymentRoot Condition="'$(SolutionDir)' != ''">$(SolutionDir)dist\$(Configuration)\Monthly_Excel\</DeploymentRoot>
     <MainProjectOutputDir Condition="'$(SolutionDir)' != ''">$(SolutionDir)Monthly_Excel\bin\$(Configuration)\net8.0-windows\</MainProjectOutputDir>
   </PropertyGroup>

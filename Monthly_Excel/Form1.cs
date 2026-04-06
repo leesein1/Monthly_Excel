@@ -14,7 +14,7 @@ using Monthly_Excel.Pages.Crawling;
 using Monthly_Excel.Pages.ImageConverter;
 using Monthly_Excel.Pages.Keyword;
 using Monthly_Excel.Pages.Settings;
-using Monthly_Excel.Pages.SpellChecker;
+using Monthly_Excel.Pages.Inspector;
 using Monthly_Excel.UI;
 
 namespace Monthly_Excel
@@ -25,7 +25,7 @@ namespace Monthly_Excel
         private readonly Size _settingsFormSize = new(562, 338);
         private readonly Size _imageConverterFormSize = new(1180, 760);
         private readonly Size _blogFormSize = new(1400, 900);
-        private readonly Size _spellCheckerFormSize = new(1200, 860);
+        private readonly Size _inspectorFormSize = new(1200, 860);
         private bool _isPreloading;
         private int _tabTransitionVersion;
         private readonly Panel _loadingOverlay;
@@ -38,7 +38,7 @@ namespace Monthly_Excel
         private readonly KeywordPage _keywordPage;
         private readonly BlogCleanerPage _blogCleanerPage;
         private readonly ImageConverterPage _imageConverterPage;
-        private readonly SpellCheckerPage _spellCheckerPage;
+        private readonly InspectorPage _inspectorPage;
         private readonly SettingsPage _settingsPage;
         private readonly List<ManagedTab> _managedTabs = new();
         private static readonly JsonSerializerOptions TabSettingsJsonOptions = new() { WriteIndented = true };
@@ -56,7 +56,7 @@ namespace Monthly_Excel
             (_loadingOverlay, _loadingLabel, _loadingSpinner) = CreateLoadingOverlay();
             (_statusStrip, _versionStatusLabel) = CreateStatusStrip();
 
-            (_crawlingPage, _keywordPage, _blogCleanerPage, _imageConverterPage, _spellCheckerPage, _settingsPage) = CreatePages();
+            (_crawlingPage, _keywordPage, _blogCleanerPage, _imageConverterPage, _inspectorPage, _settingsPage) = CreatePages();
             AttachPages();
             (_crawlingHandler, _keywordHandler, _blogCleanerHandler) = CreateHandlers();
 
@@ -64,14 +64,14 @@ namespace Monthly_Excel
             InitializeTabSettings();
         }
 
-        private (CrawlingPage CrawlingPage, KeywordPage KeywordPage, BlogCleanerPage BlogCleanerPage, ImageConverterPage ImageConverterPage, SpellCheckerPage SpellCheckerPage, SettingsPage SettingsPage) CreatePages()
+        private (CrawlingPage CrawlingPage, KeywordPage KeywordPage, BlogCleanerPage BlogCleanerPage, ImageConverterPage ImageConverterPage, InspectorPage InspectorPage, SettingsPage SettingsPage) CreatePages()
         {
             return (
                 new CrawlingPage { Dock = DockStyle.Fill },
                 new KeywordPage { Dock = DockStyle.Fill },
                 new BlogCleanerPage { Dock = DockStyle.Fill },
                 new ImageConverterPage { Dock = DockStyle.Fill },
-                new SpellCheckerPage { Dock = DockStyle.Fill },
+                new InspectorPage { Dock = DockStyle.Fill },
                 new SettingsPage { Dock = DockStyle.Fill }
             );
         }
@@ -83,18 +83,18 @@ namespace Monthly_Excel
             tabPageKeyword.SuspendLayout();
             tabPageBlogCleaner.SuspendLayout();
             tabPageImageConverter.SuspendLayout();
-            tabPageSpellChecker.SuspendLayout();
+            tabPageInspector.SuspendLayout();
             tabPageSettings.SuspendLayout();
 
             tabPageCrawling.Controls.Add(_crawlingPage);
             tabPageKeyword.Controls.Add(_keywordPage);
             tabPageBlogCleaner.Controls.Add(_blogCleanerPage);
             tabPageImageConverter.Controls.Add(_imageConverterPage);
-            tabPageSpellChecker.Controls.Add(_spellCheckerPage);
+            tabPageInspector.Controls.Add(_inspectorPage);
             tabPageSettings.Controls.Add(_settingsPage);
 
             tabPageSettings.ResumeLayout();
-            tabPageSpellChecker.ResumeLayout();
+            tabPageInspector.ResumeLayout();
             tabPageImageConverter.ResumeLayout();
             tabPageBlogCleaner.ResumeLayout();
             tabPageKeyword.ResumeLayout();
@@ -142,7 +142,7 @@ namespace Monthly_Excel
             _blogCleanerPage.BlogUrlTextBox.KeyDown += BlogUrlTextBox_KeyDown;
             _settingsPage.ApplyRequested += SettingsPage_ApplyRequested;
             _settingsPage.ResetRequested += SettingsPage_ResetRequested;
-            _spellCheckerPage.ZoomPreferenceChanged += SpellCheckerPage_ZoomPreferenceChanged;
+            _inspectorPage.ZoomPreferenceChanged += InspectorPage_ZoomPreferenceChanged;
         }
 
         private void InitializeTabSettings()
@@ -152,20 +152,20 @@ namespace Monthly_Excel
             _managedTabs.Add(new ManagedTab("keyword", tabPageKeyword.Text, tabPageKeyword));
             _managedTabs.Add(new ManagedTab("blog", tabPageBlogCleaner.Text, tabPageBlogCleaner));
             _managedTabs.Add(new ManagedTab("image", tabPageImageConverter.Text, tabPageImageConverter));
-            _managedTabs.Add(new ManagedTab("spell", tabPageSpellChecker.Text, tabPageSpellChecker));
+            _managedTabs.Add(new ManagedTab("spell", tabPageInspector.Text, tabPageInspector));
 
             var persisted = LoadTabSettings();
             ApplyPersistedTabSettings(persisted);
             if (persisted?.SpellCheckerZoom?.SaveEnabled == true)
             {
-                _spellCheckerPage.ApplyZoomPreference(
+                _inspectorPage.ApplyZoomPreference(
                     persisted.SpellCheckerZoom.ZoomPercent,
                     persisted.SpellCheckerZoom.SaveEnabled
                 );
             }
             else
             {
-                _spellCheckerPage.ApplyZoomPreference(100, false);
+                _inspectorPage.ApplyZoomPreference(100, false);
             }
 
             _settingsPage.SetTabs(
@@ -209,7 +209,7 @@ namespace Monthly_Excel
             {
                 ApplyCurrentTabLayout(centerForm: false);
                 await _blogCleanerHandler.InitializeAsync();
-                await _spellCheckerPage.InitializeAsync();
+                await _inspectorPage.InitializeAsync();
             }
             finally
             {
@@ -259,9 +259,9 @@ namespace Monthly_Excel
                 return _imageConverterFormSize;
             }
 
-            if (tabControl.SelectedTab == tabPageSpellChecker)
+            if (tabControl.SelectedTab == tabPageInspector)
             {
-                return _spellCheckerFormSize;
+                return _inspectorFormSize;
             }
 
             if (tabControl.SelectedTab == tabPageSettings)
@@ -296,7 +296,7 @@ namespace Monthly_Excel
             SaveTabSettings();
         }
 
-        private void SpellCheckerPage_ZoomPreferenceChanged(object? sender, EventArgs e)
+        private void InspectorPage_ZoomPreferenceChanged(object? sender, EventArgs e)
         {
             SaveTabSettings();
         }
@@ -308,9 +308,9 @@ namespace Monthly_Excel
             _managedTabs.Add(new ManagedTab("keyword", tabPageKeyword.Text, tabPageKeyword));
             _managedTabs.Add(new ManagedTab("blog", tabPageBlogCleaner.Text, tabPageBlogCleaner));
             _managedTabs.Add(new ManagedTab("image", tabPageImageConverter.Text, tabPageImageConverter));
-            _managedTabs.Add(new ManagedTab("spell", tabPageSpellChecker.Text, tabPageSpellChecker));
+            _managedTabs.Add(new ManagedTab("spell", tabPageInspector.Text, tabPageInspector));
 
-            _spellCheckerPage.ApplyZoomPreference(100, false);
+            _inspectorPage.ApplyZoomPreference(100, false);
             _settingsPage.SetTabs(
                 _managedTabs
                     .Select(tab => new SettingsTabState(tab.Key, tab.Title, tab.Visible))
@@ -456,7 +456,7 @@ namespace Monthly_Excel
 
         private PersistedSpellCheckerZoom BuildSpellCheckerZoomSetting()
         {
-            var (zoomPercent, saveEnabled) = _spellCheckerPage.GetZoomPreference();
+            var (zoomPercent, saveEnabled) = _inspectorPage.GetZoomPreference();
             return new PersistedSpellCheckerZoom
             {
                 ZoomPercent = saveEnabled ? zoomPercent : 100,
