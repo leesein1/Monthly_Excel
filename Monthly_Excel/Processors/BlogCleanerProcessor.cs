@@ -19,6 +19,8 @@ namespace Monthly_Excel.Processors
         private string? _sessionFolderPath;
 
         private bool _initialized;
+        private bool _isPageNavigationCompleted;
+        private bool _navigationHandlerAttached;
 
         public BlogCleanerProcessor(WebView2 webView, Action<string> setStatus)
         {
@@ -28,29 +30,59 @@ namespace Monthly_Excel.Processors
 
         public async Task InitializeAsync()
         {
-            if (_initialized)
+            if (_initialized && _webView.CoreWebView2 != null)
                 return;
 
             try
             {
                 _setStatus("브라우저 초기화 중...");
 
-                WebView2TempManager.CleanupOldSessionFolders(TimeSpan.FromHours(12));
-                WebView2TempManager.CleanupAllExcept(_sessionFolderPath);
-                _sessionFolderPath ??= WebView2TempManager.CreateSessionFolder();
-                var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: _sessionFolderPath);
-                await _webView.EnsureCoreWebView2Async(environment);
+                if (_webView.CoreWebView2 == null)
+                {
+                    WebView2TempManager.CleanupOldSessionFolders(TimeSpan.FromHours(12));
+                    WebView2TempManager.CleanupAllExcept(_sessionFolderPath);
+                    _sessionFolderPath ??= WebView2TempManager.CreateSessionFolder();
+                    var environment = await CoreWebView2Environment.CreateAsync(userDataFolder: _sessionFolderPath);
+                    try
+                    {
+                        await _webView.EnsureCoreWebView2Async(environment);
+                    }
+                    catch (InvalidOperationException ex) when (
+                        ex.Message.Contains("already initialized with a different CoreWebView2Environment", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await _webView.EnsureCoreWebView2Async();
+                    }
+                }
 
                 if (_webView.CoreWebView2 != null)
                 {
-                    _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    if (!_navigationHandlerAttached)
+                    {
+                        _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                        _navigationHandlerAttached = true;
+                    }
+
                     _webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
                     _webView.CoreWebView2.Settings.AreDevToolsEnabled = true;
                     _webView.CoreWebView2.Settings.IsZoomControlEnabled = true;
                 }
+                else
+                {
+                    _setStatus("브라우저 엔진 초기화에 실패했습니다.");
+                    return;
+                }
 
                 _initialized = true;
                 _setStatus("브라우저 초기화 완료");
+
+                // Avoid blank initial screen: navigate after WebView2 is initialized.
+                if (_webView.CoreWebView2 != null &&
+                    string.Equals(_webView.CoreWebView2.Source, "about:blank", StringComparison.OrdinalIgnoreCase))
+                {
+                    _isPageNavigationCompleted = false;
+                    _webView.CoreWebView2.Navigate("https://blog.naver.com");
+                    _setStatus("기본 블로그 페이지 여는 중...");
+                }
             }
             catch (Exception ex)
             {
@@ -60,8 +92,14 @@ namespace Monthly_Excel.Processors
 
         public async Task OpenAsync(string url)
         {
-            if (!_initialized)
+            if (_webView.CoreWebView2 == null)
                 await InitializeAsync();
+
+            if (_webView.CoreWebView2 == null)
+            {
+                _setStatus("브라우저가 아직 준비되지 않았습니다.");
+                return;
+            }
 
             try
             {
@@ -72,6 +110,7 @@ namespace Monthly_Excel.Processors
                 }
 
                 await ClearNavigationCacheAsync();
+                _isPageNavigationCompleted = false;
                 _webView.Source = uri;
                 _setStatus("페이지 여는 중...");
             }
@@ -83,7 +122,12 @@ namespace Monthly_Excel.Processors
 
         public async Task CleanAsync()
         {
-            if (!_initialized || _webView.CoreWebView2 == null)
+            if (_webView.CoreWebView2 == null)
+            {
+                await InitializeAsync();
+            }
+
+            if (_webView.CoreWebView2 == null)
             {
                 _setStatus("브라우저가 아직 준비되지 않았습니다.");
                 return;
@@ -91,6 +135,13 @@ namespace Monthly_Excel.Processors
 
             try
             {
+                var waitTime = _isPageNavigationCompleted ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(8);
+                if (!await WaitForContentReadyAsync(waitTime))
+                {
+                    _setStatus("본문 영역이 아직 로드되지 않았습니다. 페이지가 완전히 뜬 뒤 다시 시도하세요.");
+                    return;
+                }
+
                 _setStatus("HTML 정리 중...");
 
                 string cleanScript = BlogCleanerScriptProvider.GetCleanScript();
@@ -109,7 +160,12 @@ namespace Monthly_Excel.Processors
 
         public async Task RefreshAsync()
         {
-            if (!_initialized || _webView.CoreWebView2 == null)
+            if (_webView.CoreWebView2 == null)
+            {
+                await InitializeAsync();
+            }
+
+            if (_webView.CoreWebView2 == null)
             {
                 _setStatus("브라우저가 아직 준비되지 않았습니다.");
                 return;
@@ -118,6 +174,7 @@ namespace Monthly_Excel.Processors
             try
             {
                 _setStatus("새로고침 중...");
+                _isPageNavigationCompleted = false;
                 _webView.CoreWebView2.Reload();
                 await Task.CompletedTask;
             }
@@ -129,7 +186,12 @@ namespace Monthly_Excel.Processors
 
         public async Task SaveImagesAsync(string downloadPath)
         {
-            if (!_initialized || _webView.CoreWebView2 == null)
+            if (_webView.CoreWebView2 == null)
+            {
+                await InitializeAsync();
+            }
+
+            if (_webView.CoreWebView2 == null)
             {
                 _setStatus("브라우저가 아직 준비되지 않았습니다.");
                 return;
@@ -282,7 +344,7 @@ namespace Monthly_Excel.Processors
 
         public async Task EnableRightClickAsync()
         {
-            if (!_initialized || _webView.CoreWebView2 == null)
+            if (_webView.CoreWebView2 == null)
                 return;
 
             try
@@ -301,20 +363,72 @@ namespace Monthly_Excel.Processors
         {
             if (!e.IsSuccess)
             {
+                _isPageNavigationCompleted = false;
                 _setStatus("페이지 로드 실패");
                 return;
             }
 
+            _isPageNavigationCompleted = true;
             _setStatus("페이지 로드 완료");
 
             await EnableRightClickAsync();
         }
 
+        private async Task<bool> WaitForContentReadyAsync(TimeSpan timeout)
+        {
+            if (_webView.CoreWebView2 == null)
+            {
+                return false;
+            }
+
+            var deadline = DateTime.UtcNow + timeout;
+
+            while (DateTime.UtcNow < deadline)
+            {
+                if (await IsContentReadyAsync())
+                {
+                    return true;
+                }
+
+                await Task.Delay(250);
+            }
+
+            return false;
+        }
+
+        private async Task<bool> IsContentReadyAsync()
+        {
+            if (_webView.CoreWebView2 == null)
+            {
+                return false;
+            }
+
+            const string checkScript = """
+(() => {
+    try {
+        const mainFrame = document.querySelector('#mainFrame');
+        const doc = (mainFrame && mainFrame.contentDocument) ? mainFrame.contentDocument : document;
+        const hasContainer =
+            !!doc.querySelector('.se-main-container') ||
+            !!doc.querySelector('.post-view') ||
+            !!doc.querySelector('[id^="post-view"]');
+        return hasContainer;
+    } catch (_) {
+        return false;
+    }
+})();
+""";
+
+            var result = await _webView.CoreWebView2.ExecuteScriptAsync(checkScript);
+            return string.Equals(result, "true", StringComparison.OrdinalIgnoreCase);
+        }
+
         public void Dispose()
         {
-            if (_webView?.CoreWebView2 != null)
+            if (_webView?.CoreWebView2 != null && _navigationHandlerAttached)
             {
                 _webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+                _navigationHandlerAttached = false;
             }
 
             if (!string.IsNullOrWhiteSpace(_sessionFolderPath))
