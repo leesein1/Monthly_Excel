@@ -3,9 +3,7 @@
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![C#](https://img.shields.io/badge/C%23-WinForms-blue)
 ![Version](https://img.shields.io/badge/version-1.2.3-2b7a78)
-![License](https://img.shields.io/badge/License-MIT-green)
 
-> **반복해서 시간을 쓰는 일이 있다면, 필요한 범위만 자동화해서 낭비를 줄이자.**  
 > 실제 업무에서 반복되던 작업을 줄이기 위해 만든 WinForms 기반 데스크톱 자동화 도구입니다.
 
 `Monthly Excel Manager`는 처음부터 범용 업무 프로그램을 목표로 만든 것이 아닙니다.  
@@ -163,8 +161,6 @@ CoreWebView2 상태를 확인해 중복 초기화를 방지하고, Navigation �
 
 **실제 반복 업무 하나를 줄이기 위해 시작했고, 실제 사용자의 요청을 받아 기능과 구조, 사용성, 배포 방식까지 계속 개선해 온 자동화 프로젝트입니다.**
 
-> **“사람이 계속 반복해야 하는 일이라면, 필요한 만큼 자동화해서 그 시간을 다른 곳에 쓰자.”**
-
 ---
 
 <details>
@@ -203,7 +199,3 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Publish-ReleaseAssets.ps1 `
 - 대상 사이트 DOM 변경 시 크롤링/정리 로직 수정 필요
 
 </details>
-
----
-
-MIT License
