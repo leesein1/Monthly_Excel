@@ -42,6 +42,34 @@
 
 ---
 
+## 📸 Preview
+
+<details>
+<summary><b>크롤링 화면 보기</b> — Excel 기반 게시글 정보 수집</summary>
+<br/>
+<p align="center">
+  <img src="images/Monthly_Excel_1.webp" width="820" alt="Monthly Excel Crawling" />
+</p>
+</details>
+
+<details>
+<summary><b>블로그 정리 화면 보기</b> — WebView2 기반 본문 정리 및 이미지 처리</summary>
+<br/>
+<p align="center">
+  <img src="images/Monthly_Excel_3.webp" width="820" alt="Monthly Excel Blog Cleaner" />
+</p>
+</details>
+
+<details>
+<summary><b>검사기 화면 보기</b> — 글자수 확인 및 Papago 번역</summary>
+<br/>
+<p align="center">
+  <img src="images/Monthly_Excel_5.webp" width="820" alt="Monthly Excel Inspector" />
+</p>
+</details>
+
+---
+
 ## 🔧 주요 기능
 
 - **크롤링** — Excel URL 목록을 기반으로 네이버 카페 게시글 정보를 수집하고 결과 Excel 생성
