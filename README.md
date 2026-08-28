@@ -48,7 +48,7 @@
 <summary><b>크롤링 화면 보기</b> — Excel 기반 게시글 정보 수집</summary>
 <br/>
 <p align="center">
-  <img src="images/Monthly_Excel_1.webp" width="820" alt="Monthly Excel Crawling" />
+  <img src="images/Monthly_Excel_2.webp" width="820" alt="Monthly Excel Crawling" />
 </p>
 </details>
 
@@ -61,7 +61,7 @@
 </details>
 
 <details>
-<summary><b>검사기 화면 보기</b> — 글자수 확인 및 Papago 번역</summary>
+<summary><b>릴리즈</b> - Github Releases</summary>
 <br/>
 <p align="center">
   <img src="images/Monthly_Excel_5.webp" width="820" alt="Monthly Excel Inspector" />
